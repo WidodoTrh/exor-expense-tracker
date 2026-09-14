@@ -178,7 +178,7 @@ export default function InvitePage() {
                                     <ListItemText
                                         primary={inv.email}
                                         secondary={`Invited at ${new Date(inv.invitedAt).toLocaleDateString('id-ID')}`}
-                                        primaryTypographyProps={{
+                                        slotProps={{
                                             sx: { wordBreak: 'break-all' },
                                         }}
                                         sx={{ pr: { sm: 2 } }}

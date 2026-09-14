@@ -81,7 +81,7 @@ function TransactionPage() {
                             htmlInput: { inputMode: 'decimal' },
                         }}
                     />
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                    <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap'}}>
                         {quickAmounts.map((amt) => (
                             <Chip
                                 key={amt}

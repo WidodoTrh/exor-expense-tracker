@@ -19,7 +19,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         autoHideDuration={3000}
       >
-        <BrowserRouter basename="/app">
+        <BrowserRouter basename="/">
           <GoogleOAuthProvider clientId="34527034983-bqq1kgjh66b8gp7fr4084p5slhsqma5s.apps.googleusercontent.com">
             <App />
           </GoogleOAuthProvider>
