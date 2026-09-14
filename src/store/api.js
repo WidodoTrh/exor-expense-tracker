@@ -21,7 +21,6 @@ $axInstance.interceptors.request.use((config) => {
 });
 
 let refreshPromise = null;
-
 $axInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
