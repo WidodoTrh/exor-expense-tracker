@@ -40,12 +40,18 @@ function Sidebar({ open, width, onClose }) {
         }
     }
 
+    const handleMenuClick = () => {
+        if (isMobile) {
+            onClose();
+        }
+    };
+
     return (
         <Drawer
             variant={isMobile ? 'temporary' : 'persistent'}
             anchor="left"
             open={isMobile ? open : true}
-            onClose={onClose} // wajib buat temporary, biar bisa ditutup klik backdrop/Esc
+            onClose={onClose}
             ModalProps={{
                 keepMounted: true,
             }}
@@ -82,6 +88,7 @@ function Sidebar({ open, width, onClose }) {
                                 component={Link}
                                 to={item.path}
                                 color="inherit"
+                                onClick={handleMenuClick}
                                 sx={{
                                     justifyContent: open ? 'flex-start' : 'center',
                                     minWidth: 0,
@@ -110,12 +117,20 @@ function Sidebar({ open, width, onClose }) {
 
                 <Divider sx={{ marginY: 2}} />
                 {isMobile && open && (
-                    <Box sx={{display: 'flex', flexGrow: 1, justifyContent: 'end', alignItems: 'center', marginX: 1}}>
-                        <IconButton onClick={handleProfileClick}>
-                            <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: 14 }} src={myProfile?.user?.picture}>
-                                {myProfile?.user?.name ? myProfile?.user?.name.charAt(0).toUpperCase() : <PersonIcon fontSize="small" />}
-                            </Avatar>
-                        </IconButton>
+                    <Box
+                        onClick={handleProfileClick}
+                        sx={{
+                            display: 'flex',
+                            flexGrow: 1,
+                            justifyContent: 'end',
+                            alignItems: 'center',
+                            marginX: 1,
+                            cursor: 'pointer',
+                        }}
+                    >
+                        <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: 14 }} src={myProfile?.user?.picture}>
+                            {myProfile?.user?.name ? myProfile?.user?.name.charAt(0).toUpperCase() : <PersonIcon fontSize="small" />}
+                        </Avatar>
                         <Typography variant="body2" sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 700, marginX: 1 }}>
                             {myProfile?.user?.name}
                         </Typography>
