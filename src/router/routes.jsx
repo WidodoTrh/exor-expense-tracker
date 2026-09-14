@@ -11,10 +11,9 @@ import TermsOfServicePage from "../views/TermsOfServicePage";
 import { ProtectedRoute } from './ProtectedRoute';
 
 export const routes = [
-  {
-    path: '/login',
-    element: <LoginPage />
-  },
+  {path: '/login', element: <LoginPage />},
+  { path: "/privacy-policy", title: "Settings", element: <PrivacyPolicyPage /> },
+  { path: "/terms-of-service", title: "Settings", element: <TermsOfServicePage /> },
   {
     element: (
       <ProtectedRoute>
@@ -26,8 +25,6 @@ export const routes = [
       { path: "/home", title: "Home", element: <Home /> },
       { path: "/trx", title: "Transaction", element: <TransactionPage /> },
       { path: "/settings", title: "Settings", element: <InvitePage /> },
-      { path: "/privacy-policy", title: "Settings", element: <PrivacyPolicyPage /> },
-      { path: "/terms-of-service", title: "Settings", element: <TermsOfServicePage /> },
     ],
   },
 ];
