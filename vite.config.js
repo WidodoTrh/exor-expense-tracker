@@ -8,7 +8,7 @@ export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
     plugins: [react()],
-    base: '/app/',
+    base: '/',
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
