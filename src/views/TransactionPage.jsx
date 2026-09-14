@@ -81,7 +81,7 @@ function TransactionPage() {
                             htmlInput: { inputMode: 'decimal' },
                         }}
                     />
-                    <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap'}}>
+                    <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1}}>
                         {quickAmounts.map((amt) => (
                             <Chip
                                 key={amt}
@@ -93,7 +93,7 @@ function TransactionPage() {
                                 onClick={() => setForm((f) => ({ ...f, amount: String(amt) }))}
                             />
                         ))}
-                    </Stack>
+                    </Box>
                     <Autocomplete
                         size="small"
                         options={ListCategory}
