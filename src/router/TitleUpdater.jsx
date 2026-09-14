@@ -7,9 +7,10 @@ function TitleUpdater() {
   const location = useLocation();
 
   useEffect(() => {
+    const appName = import.meta.env.VITE_APP_NAME
     const matches = matchRoutes(routes, location);
     const title = matches?.[matches.length - 1]?.route?.title;
-    document.title = title ? `${title} | E Library` : "E Library";
+    document.title = title ? `${title} | ${appName}` : "exordium";
   }, [location]);
 
   return null;

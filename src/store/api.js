@@ -1,60 +1,53 @@
 import axios from 'axios';
+import authProfiles from './auth';
 
-const isDev = import.meta.env.VITE_APP_NODE_ENV === "LOCAL";
-const $axInstance = axios.create({
+const isDev = import.meta.env.VITE_APP_NODE_ENV === "DEV";
+export const $axInstance = axios.create({
+    baseURL: isDev ? import.meta.env.VITE_APP_OAUTH_API : import.meta.env.VITE_APP_OAUTH_API,
     headers:{
-        'X-Client-Id': import.meta.env.VITE_APP_CLIENT_ID,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
     },
     withCredentials: true,
-    xsrfCookieName: 'XSRF-TOKEN',
-    xsrfHeaderName: 'X-XSRF-TOKEN'
 })
 
-// files-api-v2
-const $axPdf = axios.create({
-    baseURL: isDev
-    ? '/getarticles-v2/files'
-    : `${import.meta.env.VITE_APP_API_ARTICLE}/files`,
-    responseType: 'blob',
-    headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-Client': import.meta.env.VITE_APP_CLIENT_ID,
-        'Accept': 'application/json',
-    },
-    withCredentials: true,
-    xsrfCookieName: 'XSRF-TOKEN',
-    xsrfHeaderName: 'X-XSRF-TOKEN'
-})
-
-const $axios = axios.create({
-    baseURL: isDev
-    ? '/getmaster-v2/'
-    : `${import.meta.env.VITE_APP_API_MASTER}`,
-    headers: {
-        'X-Client': import.meta.env.VITE_APP_CLIENT_ID,
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-    },
-    withCredentials: true,
-    xsrfCookieName: 'XSRF-TOKEN',
-    xsrfHeaderName: 'X-XSRF-TOKEN'
+$axInstance.interceptors.request.use((config) => {
+    const accessToken = authProfiles.getState().state_AUTH_PROFILE?.access_token;
+    if (accessToken && !config.headers.Authorization) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+    return config;
 });
 
-const $axArticle = axios.create({
-    baseURL: isDev ?
-    '/getarticles-v2'
-    : `${import.meta.env.VITE_APP_API_ARTICLE}`,
-    headers: {
-        'X-Client': import.meta.env.VUE_APP_CLIENT_ID,
-        'X-Requested-With': 'XMLHttpRequest',
-    },
-    withCredentials: true,
-    xsrfCookieName: 'XSRF-TOKEN',
-    xsrfHeaderName: 'X-XSRF-TOKEN'
-})
+let refreshPromise = null;
 
+$axInstance.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
+        const isAuthEndpoint = originalRequest.url?.includes('/auth/refresh') || originalRequest.url?.includes('/auth/google');
 
-export {$axios, $axArticle, $axInstance, $axPdf};
+        if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+        originalRequest._retry = true;
+
+        try {
+            if (!refreshPromise) {
+                refreshPromise = $axInstance.post('/auth/refresh').finally(() => {
+                    refreshPromise = null;
+                });
+            }
+            const refreshRes = await refreshPromise;
+            authProfiles.setState({ state_AUTH_PROFILE: refreshRes.data });
+            originalRequest.headers.Authorization = `Bearer ${refreshRes.data.access_token}`;
+            return $axInstance(originalRequest);
+        } catch (refreshError) {
+            authProfiles.setState({ state_AUTH_PROFILE: null });
+            window.location.href = '/login';
+            return Promise.reject(refreshError);
+        }
+        }
+
+        return Promise.reject(error);
+    }
+);

@@ -36,7 +36,7 @@ export function CustomThemeProvider({ children }) {
         palette: {
           mode,
           primary: {
-            main: '#0d6efd',      // Bootstrap blue
+            main: '#6366f1',      // Bootstrap blue
             light: '#3d8bfd',
             dark: '#0a58ca',
             contrastText: '#ffffff',

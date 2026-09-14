@@ -23,6 +23,10 @@ export default defineConfig(({ mode, command }) => {
             })
         },
         proxy: {
+            '/api': {
+                target: 'http://localhost:3000',
+                changeOrigin: true,
+            },
             '/getmaster-v2': {
                 target: 'https://api.jalaera.com',
                 changeOrigin: true,
@@ -39,8 +43,8 @@ export default defineConfig(({ mode, command }) => {
         host: env.VITE_APP_ALLOWED_HOSTS,
         port: 443,
         https: {
-            key: fs.readFileSync('./cert/elibrary-dev.id-key.pem'),
-            cert: fs.readFileSync('./cert/elibrary-dev.id.pem'),
+            key: fs.readFileSync('./cert/exordium-dev.id-key.pem'),
+            cert: fs.readFileSync('./cert/exordium-dev.id.pem'),
         },
         hmr: {
             protocol: 'wss',

@@ -15,78 +15,13 @@ import {
     Typography,
     Toolbar,
     Alert,
+    TextField,
+    InputAdornment,
+    IconButton,
 } from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
+import ClearIcon from '@mui/icons-material/Clear'
 
-/**
- * ==============================================================
- * GENERIC DATA TABLE
- * ==============================================================
- *
- * ---- columns: array of {
- *   id: string                    -> unique key kolom, dipakai sebagai `orderBy`
- *   label: string                  -> teks header
- *   align?: 'left'|'right'|'center'
- *   width?: number|string          -> lebar kolom (optional)
- *   sortable?: boolean              -> default true, set false utk kolom Action/Checkbox
- *   noWrap?: boolean                 -> potong teks panjang jadi 1 baris + ellipsis (...), berguna dipasangkan
- *                                        dengan `width` fixed biar konten panjang gak dorong kolom lain
- *   getValue?: (row) => any          -> raw value buat dibandingkan saat sorting (wajib kalau nested field)
- *   render?: (row, rowIndex) => ReactNode -> custom render cell, fallback ke getValue(row) atau row[id]
- * }
- *
- * ---- data: array of object -> data mentah (sudah difilter dari parent, DataTable yg handle sort+pagination)
- *
- * ---- rowKey: (row) => string|number -> unique key tiap row, default row.id
- *
- * ---- SORTING (client-side, default)
- * defaultOrderBy / defaultOrder: initial sort
- *
- * ---- PAGINATION
- * rowsPerPageOptions: default [5, 10, 25]
- * defaultRowsPerPage: default rowsPerPageOptions[0]
- *
- * ---- SERVER-SIDE MODE (opsional)
- * Kalau data & sorting/pagination di-handle backend, set `serverSide={true}` lalu isi:
- *   totalCount: number                          -> total row di server (buat TablePagination)
- *   page, rowsPerPage: controlled dari parent
- *   onPageChange: (newPage) => void
- *   onRowsPerPageChange: (newRowsPerPage) => void
- *   onSortChange: (orderBy, order) => void
- * Kalau serverSide=true, DataTable TIDAK melakukan slice/sort sendiri — data diasumsikan sudah final dari parent.
- *
- * ---- ROW CLICK
- * onRowClick?: (row) => void      -> kalau diisi, row jadi clickable (cursor pointer + hover effect)
- * isRowDisabled?: (row) => boolean -> row tertentu gak bisa diklik/diselect (mis. status archived)
- *
- * ---- SELECTABLE ROWS
- * selectable?: boolean             -> tampilkan checkbox column di kiri
- * selected?: array                 -> controlled selected row keys (opsional, kalau mau controlled dari parent)
- * onSelectionChange?: (selectedKeys[]) => void
- *
- * ---- LOADING & ERROR & EMPTY
- * loading?: boolean                -> tampilkan skeleton rows
- * skeletonRows?: number            -> jumlah baris skeleton, default 5
- * error?: string|null              -> tampilkan Alert error di atas tabel, table body tetap kekunci kosong
- * emptyMessage?: string            -> default "No data available"
- * emptyIcon?: ReactNode            -> optional icon di atas emptyMessage
- *
- * ---- TOOLBAR (opsional)
- * title?: string                   -> judul tabel di toolbar atas
- * toolbarActions?: ReactNode       -> slot custom di kanan toolbar (misal tombol "Add", search box, dll)
- *
- * ---- STYLING
- * dense?: boolean                  -> size="small"
- * stickyHeader?: boolean           -> header nempel pas scroll, butuh maxHeight di container
- * maxHeight?: number|string        -> tinggi max container (dipakai bareng stickyHeader)
- * getRowSx?: (row) => sxObject     -> custom style per row (misal highlight row tertentu)
- * fixedLayout?: boolean            -> default true, pakai table-layout:fixed biar lebar kolom (col.width)
- *                                      gak goyang ngikutin panjang konten row. Set false utk balik ke behavior
- *                                      auto (lebar kolom ngikutin konten terpanjang).
- *                                      Kalau fixedLayout=true, sebaiknya kasih `width` di tiap column config
- *                                      (boleh cuma sebagian, sisanya otomatis bagi rata sisa ruang).
- *                                      Kolom tanpa width + konten panjang WAJIB pasang noWrap/ellipsis manual
- *                                      di dalam `render`, karena fixed layout gak akan auto-expand lagi.
- */
 export default function DataTable({
     columns = [],
     data = [],
@@ -108,6 +43,14 @@ export default function DataTable({
     onPageChange: controlledOnPageChange,
     onRowsPerPageChange: controlledOnRowsPerPageChange,
     onSortChange,
+
+    // search
+    searchable = false,
+    searchPlaceholder = 'Search...',
+    searchValue: controlledSearchValue,
+    onSearchChange,
+    searchableColumns, // optional array of column ids; default: semua kolom (kecuali col.searchable === false)
+    searchDebounceMs = 300,
 
     // row click
     onRowClick,
@@ -135,6 +78,7 @@ export default function DataTable({
     maxHeight,
     getRowSx,
     fixedLayout = true,
+    minTableWidth = 650,
 }) {
     // ---------- sorting state (local, dipakai kalau bukan serverSide) ----------
     const [order, setOrder] = useState(defaultOrder)
@@ -149,9 +93,16 @@ export default function DataTable({
     // ---------- selection state (local, dipakai kalau `selected` gak dikontrol parent) ----------
     const [localSelected, setLocalSelected] = useState([])
 
+    // ---------- search state ----------
+    // localSearchInput: nilai yang tampil di TextField (langsung berubah, biar UI responsif)
+    // localSearchTerm: nilai yang dipakai buat filter beneran (di-debounce)
+    const [localSearchInput, setLocalSearchInput] = useState('')
+    const [localSearchTerm, setLocalSearchTerm] = useState('')
+
     const page = serverSide ? controlledPage ?? 0 : localPage
     const rowsPerPage = serverSide ? controlledRowsPerPage ?? rowsPerPageOptions[0] : localRowsPerPage
     const selected = controlledSelected ?? localSelected
+    const searchInputValue = serverSide ? controlledSearchValue ?? '' : localSearchInput
 
     const activeColumn = columns.find((col) => col.id === orderBy)
 
@@ -161,10 +112,35 @@ export default function DataTable({
         return row?.[activeColumn.id]
     }
 
+    // ---------- search logic (skip kalau serverSide, karena filter dilakukan di backend) ----------
+    const searchColumns = useMemo(() => {
+        if (!searchable) return []
+        return columns.filter((col) =>
+            searchableColumns ? searchableColumns.includes(col.id) : col.searchable !== false
+        )
+    }, [columns, searchable, searchableColumns])
+
+    const filteredData = useMemo(() => {
+        if (serverSide || !searchable || !localSearchTerm.trim()) return data
+        const term = localSearchTerm.trim().toLowerCase()
+        return data.filter((row) =>
+            searchColumns.some((col) => {
+                const val = col.getSearchValue
+                    ? col.getSearchValue(row)
+                    : col.getValue
+                    ? col.getValue(row)
+                    : row?.[col.id]
+                if (val == null) return false
+                return String(val).toLowerCase().includes(term)
+            })
+        )
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [data, localSearchTerm, serverSide, searchable, searchColumns])
+
     // ---------- sorting logic (skip kalau serverSide, karena data udah final dari backend) ----------
     const sortedData = useMemo(() => {
-        if (serverSide || !orderBy) return data
-        return [...data].sort((a, b) => {
+        if (serverSide || !orderBy) return filteredData
+        return [...filteredData].sort((a, b) => {
             const valA = getSortValue(a)
             const valB = getSortValue(b)
 
@@ -177,7 +153,7 @@ export default function DataTable({
             return 0
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data, order, orderBy, serverSide])
+    }, [filteredData, order, orderBy, serverSide])
 
     // ---------- pagination logic (skip slice kalau serverSide, karena data yg dikirim udah 1 halaman) ----------
     const paginatedData = useMemo(() => {
@@ -212,6 +188,38 @@ export default function DataTable({
             setLocalRowsPerPage(newRowsPerPage)
             setLocalPage(0)
         }
+    }
+
+    // debounce ref buat local search (biar gak filter tiap keystroke kalau data-nya gede)
+    const searchTimeoutRef = useState(() => ({ current: null }))[0]
+
+    const handleSearchInputChange = (event) => {
+        const value = event.target.value
+
+        if (serverSide) {
+            // serverSide: langsung kirim ke parent, biarin parent yang debounce/fetch kalau perlu
+            onSearchChange?.(value)
+            return
+        }
+
+        setLocalSearchInput(value)
+        setLocalPage(0)
+
+        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
+        searchTimeoutRef.current = setTimeout(() => {
+            setLocalSearchTerm(value)
+        }, searchDebounceMs)
+    }
+
+    const handleClearSearch = () => {
+        if (serverSide) {
+            onSearchChange?.('')
+            return
+        }
+        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
+        setLocalSearchInput('')
+        setLocalSearchTerm('')
+        setLocalPage(0)
     }
 
     const handleRowClick = (row) => {
@@ -249,17 +257,57 @@ export default function DataTable({
 
     const colSpanTotal = columns.length + (selectable ? 1 : 0)
     const effectiveRowCount = serverSide ? totalCount : sortedData.length
+    const showToolbar = !!(title || toolbarActions || searchable)
 
     return (
         <Paper variant="outlined" sx={{ width: '100%', my: 2 }}>
-            {(title || toolbarActions) && (
-                <Toolbar sx={{ pl: 2, pr: 2, display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+            {showToolbar && (
+                <Toolbar
+                    disableGutters
+                    sx={{
+                        pl: 1,
+                        pr: 2,
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        justifyContent: 'space-between',
+                        gap: 2,
+                        py: 1.5,
+                    }}
+                >
                     {title && (
                         <Typography variant="h6" component="div">
                             {title}
                         </Typography>
                     )}
-                    {toolbarActions && <Box sx={{ display: 'flex', gap: 1 }}>{toolbarActions}</Box>}
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                        {searchable && (
+                            <TextField
+                                size="small"
+                                value={searchInputValue}
+                                onChange={handleSearchInputChange}
+                                placeholder={searchPlaceholder}
+                                sx={{ minWidth: 220 }}
+                                slotProps={{
+                                    input: {
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <SearchIcon fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                        endAdornment: searchInputValue ? (
+                                            <InputAdornment position="end">
+                                                <IconButton size="small" onClick={handleClearSearch} edge="end">
+                                                    <ClearIcon fontSize="small" />
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ) : null,
+                                    },
+                                }}
+                            />
+                        )}
+                        {toolbarActions && <Box sx={{ display: 'flex', gap: 1 }}>{toolbarActions}</Box>}
+                    </Box>
                 </Toolbar>
             )}
 
@@ -273,7 +321,10 @@ export default function DataTable({
                 <Table
                     size={dense ? 'small' : 'medium'}
                     stickyHeader={stickyHeader}
-                    sx={fixedLayout ? { tableLayout: 'fixed' } : undefined}
+                    sx={{
+                        ...(fixedLayout ? { tableLayout: 'fixed' } : undefined),
+                        ...(minTableWidth ? { minWidth: minTableWidth } : undefined),
+                    }}
                 >
                     <TableHead>
                         <TableRow>
@@ -336,7 +387,9 @@ export default function DataTable({
                                 <TableCell colSpan={colSpanTotal} align="center" sx={{ py: 6 }}>
                                     {emptyIcon && <Box sx={{ mb: 1 }}>{emptyIcon}</Box>}
                                     <Typography variant="body2" color="text.secondary">
-                                        {emptyMessage}
+                                        {searchable && localSearchTerm
+                                            ? `No results for "${localSearchTerm}"`
+                                            : emptyMessage}
                                     </Typography>
                                 </TableCell>
                             </TableRow>

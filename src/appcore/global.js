@@ -1,4 +1,9 @@
 class global {
+
+    static formatDateLocal(date) {
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
     static ftpServe(param='') {
         return import.meta.env.VITE_APP_URL_FTP + param;
     }
