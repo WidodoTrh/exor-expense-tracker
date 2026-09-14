@@ -7,8 +7,6 @@ export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Coba silent refresh pas app pertama kali load
-    // (kalau user pernah login, refresh_token masih ada di httpOnly cookie)
     useEffect(() => {
         async function tryRefresh() {
             try {
@@ -23,7 +21,7 @@ export function AuthProvider({ children }) {
                     setUser(data.user);
                 }
             } catch (e) {
-                // gapapa, berarti belum login
+                console.error(e)
             } finally {
                 setLoading(false);
             }

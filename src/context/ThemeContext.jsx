@@ -37,8 +37,8 @@ export function CustomThemeProvider({ children }) {
           mode,
           primary: {
             main: '#6366f1',      // Bootstrap blue
-            light: '#3d8bfd',
-            dark: '#0a58ca',
+            light: '#818cf8',
+            dark: '#4f46e5',
             contrastText: '#ffffff',
           },
           secondary: {
