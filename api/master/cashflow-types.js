@@ -2,12 +2,7 @@ import { supabaseFromRequest } from '../_lib/_supabaseFromRequest.js';
 
 export default async function handler(req, res) {
     const supabase = supabaseFromRequest(req);
-    const { month, year } = req.query;
-
-    const { data, error } = await supabase
-        .rpc('get_full_summary', { p_month: Number(month), p_year: Number(year) })
-        .single();
-
+    const { data, error } = await supabase.from('cashflow_type').select('id, name');
     if (error) return res.status(400).json({ error: error.message });
-    return res.status(200).json(data);
+    return res.status(200).json({ cashflow_type: data });
 }

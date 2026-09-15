@@ -1,20 +1,21 @@
 import { Chip, Container, Box, Button, TextField, MenuItem, Stack, CircularProgress, Typography, Divider, Autocomplete } from "@mui/material";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTransactionsQuery } from "../hooks/useTransactionsQuery";
-import { useCategoriesQuery } from "../hooks/useCategoriesQuery";
-import { usePaymentType } from "../hooks/usePaymentType";
 import { useSnackbar } from 'notistack'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import global from "../appcore/global"
+import { usePaymentTypesQuery, useCategoriesQuery, useCashflowTypesQuery } from '../hooks/useMasterQuery';
 
-const SPENTS_BY = ['Widodo', 'Putri']
 function TransactionPage() {
     const { enqueueSnackbar } = useSnackbar()
-    const { ListPaymentType } = usePaymentType()
+    const { ListPaymentType } = usePaymentTypesQuery()
     const { ListCategory } = useCategoriesQuery()
+    const { cashflowTypes } = useCashflowTypesQuery()
+
+
     const { addTransaction } = useTransactionsQuery()
     const [form, setForm] = useState({
-        title: '', spentBy: '', amount: '', category: '', paymentType: '', spendDatetime: global.formatDateLocal(new Date()) ,
+        description: '', amount: '', category_id: '', payment_type_id: '', cashflow_type_id: '', transaction_date: global.formatDateLocal(new Date()) ,
     });
     const [submitting, setSubmitting] = useState(false);
     const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -23,9 +24,8 @@ function TransactionPage() {
     const handleChange = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
     const handleDateChange = (newValue) => {
         const formatted = newValue ? `${newValue.getFullYear()}-${String(newValue.getMonth() + 1).padStart(2, '0')}-${String(newValue.getDate()).padStart(2, '0')}` : '';
-        setForm((f) => ({ ...f, spendDatetime: formatted }));
+        setForm((f) => ({ ...f, transaction_date: formatted }));
     };
-
 
 
     const handleSubmit = async () => {
@@ -35,7 +35,7 @@ function TransactionPage() {
                 ...form,
                 amount: parseFloat(form.amount) || 0,
             });
-            setForm({ title: '', spentBy: '', amount: '', category: '', paymentType: '', spendDatetime: global.formatDateLocal(new Date())});
+            setForm({ description: '', amount: '', category_id: '', payment_type_id: '', transaction_date: global.formatDateLocal(new Date())});
             enqueueSnackbar('Transaction saved successfuly', { variant: 'success', anchorOrigin: {vertical: 'top', horizontal: 'center'}});
         } catch (err) {
             console.error('Failed to add transaction:', err);
@@ -45,6 +45,22 @@ function TransactionPage() {
             setSubmitting(false);
         }
     };
+
+    useEffect(() => {
+        if (ListPaymentType.length > 0 && !form.payment_type_id) {
+            const defaultCash = ListPaymentType.find((pt) => pt.name === 'Cashless');
+            if (defaultCash) {
+                setForm((f) => ({ ...f, payment_type_id: defaultCash.id }));
+            }
+        }
+        if (cashflowTypes.length > 0 && !form.cashflow_type_id) {
+            const defaultExpense = cashflowTypes.find((ct) => ct.name === 'Expense');
+            if (defaultExpense) {
+                setForm((f) => ({ ...f, cashflow_type_id: defaultExpense.id }));
+            }
+        }
+    }, [ListPaymentType, cashflowTypes])
+
     return (
         <Container maxWidth="md" sx={{justifyContent: 'center', marginY: 2}}>
             <Typography variant="h4" fontWeight={700} sx={{mb: 2}}>
@@ -53,19 +69,7 @@ function TransactionPage() {
             <Divider />
             <Box sx={{display: 'flex', flexDirection: 'column'}}>
                 <Stack spacing={2} sx={{ marginY: 2 }}>
-                    <TextField label="Title" value={form.title} onChange={handleChange('title')} fullWidth size="small" />
-                    <TextField
-                        size="small"
-                        select 
-                        label="Spent By" 
-                        value={form.spentBy} 
-                        onChange={handleChange('spentBy')} 
-                        fullWidth 
-                    >
-                        {SPENTS_BY.map((c) => (
-                            <MenuItem key={c} value={c}>{c}</MenuItem>
-                        ))}
-                    </TextField>
+                    <TextField label="Description" value={form.description} onChange={handleChange('description')} fullWidth size="small" />
                     <TextField
                         size="small"
                         label="Amount"
@@ -98,43 +102,55 @@ function TransactionPage() {
                         size="small"
                         options={ListCategory}
                         getOptionLabel={(option) => option.name}
-                        value={ListCategory.find((c) => c.name === form.category) || null}
+                        value={ListCategory.find((c) => c.id === form.category_id) || null}
                         onChange={(event, newValue) => {
-                            setForm((f) => ({ ...f, category: newValue?.name || '' }));
+                            setForm((f) => ({ ...f, category_id: newValue?.id || '' }));
                         }}
-                        isOptionEqualToValue={(option, value) => option.name === value.name}
+                        isOptionEqualToValue={(option, value) => option.id === value.id}
                         renderInput={(params) => (
                             <TextField {...params} label="Category" fullWidth />
                         )}
                         slotProps={{
-                            listbox: {
-                                sx: { maxHeight: 250 },
-                            },
+                            listbox: { sx: { maxHeight: 250 } },
+                        }}
+                    />
+                    <Autocomplete
+                        size="small"
+                        options={ListPaymentType}
+                        getOptionLabel={(option) => option?.name}
+                        value={ListPaymentType.find((c) => c.id === form.payment_type_id) || null}
+                        onChange={(event, newValue) => {
+                            setForm((f) => ({ ...f, payment_type_id: newValue?.id || '' }));
+                        }}
+                        isOptionEqualToValue={(option, value) => option.id === value.id}
+                        renderInput={(params) => (
+                            <TextField {...params} label="Payment Type" fullWidth />
+                        )}
+                        slotProps={{
+                            listbox: { sx: { maxHeight: 250 } },
                         }}
                     />
 
                     <Autocomplete
                         size="small"
-                        options={ListPaymentType}
-                        getOptionLabel={(option) => option.name}
-                        value={ListPaymentType.find((c) => c.name === form.paymentType) || null}
+                        options={cashflowTypes}
+                        getOptionLabel={(option) => option?.name}
+                        value={cashflowTypes.find((c) => c.id === form.cashflow_type_id) || null}
                         onChange={(event, newValue) => {
-                            setForm((f) => ({ ...f, paymentType: newValue?.name || '' }));
+                            setForm((f) => ({ ...f, cashflow_type_id: newValue?.id || '' }));
                         }}
-                        isOptionEqualToValue={(option, value) => option.name === value.name}
+                        isOptionEqualToValue={(option, value) => option.id === value.id}
                         renderInput={(params) => (
-                            <TextField {...params} label="Payment Type" fullWidth />
+                            <TextField {...params} label="Cashflow Type" fullWidth />
                         )}
                         slotProps={{
-                            listbox: {
-                                sx: { maxHeight: 250 },
-                            },
+                            listbox: { sx: { maxHeight: 250 } },
                         }}
                     />
 
                     <DatePicker
-                        label="Spend Date"
-                        value={form.spendDatetime ? new Date(form.spendDatetime) : null}
+                        label="Transaction Date"
+                        value={form.transaction_date ? new Date(form.transaction_date) : null}
                         onChange={handleDateChange}
                         open={datePickerOpen}
                         onOpen={() => setDatePickerOpen(true)}

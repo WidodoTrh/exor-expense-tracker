@@ -5,21 +5,22 @@ import authProfiles from '../store/auth';
 
 export function useSummaryQuery({ month, year } = {}) {
     const { state_AUTH_PROFILE } = authProfiles();
-    const accessToken = state_AUTH_PROFILE?.access_token;
-    const spreadsheetId = state_AUTH_PROFILE?.spreadsheetId;
+    const userId = state_AUTH_PROFILE?.id;
 
     const fetcher = () =>
         $axInstance
-        .get('/sheets/summary', {params: { spreadsheetId, month, year }})
-        .then((res) => res.data);
+            .get('/sheets/summary', { params: { month, year } })
+            .then((res) => res.data);
 
-    const { data, summaryError, isLoading, mutate } = useSWR(
-        accessToken && spreadsheetId ? ['/sheets/summary', spreadsheetId, month, year] : null,
+    const { data, error: summaryError, isLoading, mutate } = useSWR(
+        userId && month && year ? ['/sheets/summary', userId, month, year] : null,
         fetcher
     );
 
     return {
-        summary: data ?? null,
+        summary: data?.monthly ?? null,
+        dailySummary: data?.daily ?? [],
+        categorySummary: data?.by_category ?? [],
         summaryLoading: isLoading,
         summaryError,
         refetch: mutate,

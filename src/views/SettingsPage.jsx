@@ -1,20 +1,13 @@
 import { useState } from 'react';
-import { CircularProgress, List, ListItem, ListItemText, Chip, Box, Card, CardContent, Typography, TextField, Button, MenuItem, Stack, Container, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
+import { Autocomplete, Box, Card, CardContent, Typography, TextField, Button, MenuItem, Stack, Container, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import { useCategoriesQuery } from '../hooks/useCategoriesQuery';
-import { useInvitedListQuery } from '../hooks/useInvitedListQuery';
-import { usePaymentType } from '../hooks/usePaymentType';
+import { useCategoriesQuery, useCashflowTypesQuery, usePaymentTypesQuery } from '../hooks/useMasterQuery';
 import { SlideDownTransition, GrowTransition, ZoomTransition } from '../component/TransitionEffect';
+import { useConfirmDialog } from "../component/BaseConfirmationDialog"
 
-import global from '../appcore/global';
 import AddIcon from '@mui/icons-material/Add';
-import DataTable from '../component/BaseDataTable'
 import DeleteIcon from '@mui/icons-material/Delete';
-
-const ROLES = [
-    { value: 'writer', label: 'Editor' },
-    { value: 'reader', label: 'Readonly' },
-];
+import DataTable from '../component/BaseDataTable'
 
 const TYPES = [
   { value: 'expense', label: 'Expense' },
@@ -22,62 +15,49 @@ const TYPES = [
 ];
 
 export default function InvitePage() {
-    const { ListCategory , newCatError, onCategoryLoad, addCategories, refetch } = useCategoriesQuery();
-    const { ListPaymentType, newPTerror, onPaymenttypeLoad, addPaymentType } = usePaymentType()
-    const { invitedList, invitedError, invitedLoading, revoking, invitingUser, inviteUser, revokeInvite } = useInvitedListQuery()
+    const { ListCategory, addCategory, dropCategory, onCategoryLoad } = useCategoriesQuery();
+    const { cashflowTypes } = useCashflowTypesQuery();
+    const { ListPaymentType, onPaymenttypeLoad, addPaymentType } = usePaymentTypesQuery()
+    const {confirm, ConfirmDialog} = useConfirmDialog()
+
+    const [ addCategoryForm, setAddCategoryForm] = useState({
+            name: '', cashflow_type_id: '',
+        });
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [PTdialogOpen, setPTdialog] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     const [pyType, setpyType] = useState('');
-    const [name, setName] = useState('');
-    const [type, setType] = useState('expense');
     const [submitting, setSubmitting] = useState(false);
 
     const [tabVal, setTabVal] = useState(0)
     const { enqueueSnackbar } = useSnackbar();
 
-    const [email, setEmail] = useState('');
-    const [role, setRole] = useState('writer');
-
     // dt categories
-
-    const dt_categories = [{id: 'name', label: 'Category Title'}]
+    const dt_categories = [
+        {
+            id: 'name',
+            label: 'Category Title'
+        },
+        {
+            id: 'action',
+            label: 'Action',
+            sortable: false,
+            render: (row) => {
+                return <Button startIcon={<DeleteIcon />} color="error" onClick={() => getConfirmDialog(row)} disabled={deleting} />
+            }
+        }
+    ]
     const dt_paymentType = [{id: 'name', label: 'Payment Type'}]
 
+    const handleFormChange = (field) => (e) => setAddCategoryForm((f) => ({ ...f, [field]: e.target.value }));
     const handleTabChange = (event, newVal) => (
         setTabVal(newVal)
     )
 
-    const handleSubmitInvitation = async (e) => {
-        e.preventDefault();
-        if (!email) return;
-
-        try {
-            await inviteUser({ inviteeEmail: email, role });
-            enqueueSnackbar(`${email} has invited`, { variant: 'success' });
-            setEmail('');
-            setRole('writer');
-        } catch (err) {
-            enqueueSnackbar(err.message, { variant: 'error' });
-        }
-    };
-
-    const handleRevoke = async (email) => {
-        try {
-        await revokeInvite(email);
-            enqueueSnackbar(`Acess for ${email} revoked`, { variant: 'success' });
-        } catch (err) {
-            const message = err?.response?.data?.error || 'Failed to revoke';
-            enqueueSnackbar(message, { variant: 'error' });
-        }
-    };
-
-    // add category
-
     const handleClose = () => {
-        setName('');
-        setType('expense');
+        setAddCategoryForm({name: '', cashflow_type_id: ''});
         setDialogOpen(false)
     };
 
@@ -87,19 +67,44 @@ export default function InvitePage() {
     };
 
     const handleSubmitCategory = async () => {
-        if (!name.trim()) return;
+        if (!addCategoryForm.name.trim() || !addCategoryForm.cashflow_type_id.trim()) {
+            enqueueSnackbar('Field must be not empy', { variant: 'error' });
+            return;
+        };
         setSubmitting(true);
         try {
-            await addCategories({ name: name.trim(), type });
-            enqueueSnackbar('Kategori berhasil ditambahkan', { variant: 'success' });
+            const res = await addCategory(addCategoryForm);
+            enqueueSnackbar(`${res.category.name} successfuly added`, { variant: 'success' });
             handleClose();
         } catch (err) {
-            const message = err?.response?.data?.error || err.message || 'Gagal menambahkan kategori';
+            const message = err?.response?.data?.error || err.message || 'Failed to add new category';
             enqueueSnackbar(message, { variant: 'error' });
         } finally {
             setSubmitting(false);
         }
     };
+
+    const drop_category = async (v) => {
+        setDeleting(true)
+        try {
+            await dropCategory(v.id)
+            enqueueSnackbar(`${v.name} successfuly deleted`, { variant: 'success' });
+        } catch (error) {
+            const message = error?.response?.data?.error || error.message;
+            enqueueSnackbar(message, { variant: 'error' });
+        } finally {
+            setDeleting(false)
+        }
+    }
+
+    const getConfirmDialog = async (v) => {
+        const currCategory = v.name
+        const message = `${currCategory} - Are you sure you want to delete this category ?`
+        const y = await confirm('Delete Category', message)
+        if (y) {
+            drop_category(v)
+        }
+    }
 
     const handleSubmitPT = async () => {
         if (!pyType.trim()) return;
@@ -119,92 +124,12 @@ export default function InvitePage() {
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
             <Tabs value={tabVal} onChange={handleTabChange} sx={{marginY: 2}} variant="scrollable" scrollButtons="auto">
-                <Tab label="Invite Person" />
                 <Tab label="Categories Configuration" />
                 <Tab label="Payment Type Configuration" />
             </Tabs>
+            {ConfirmDialog}
 
-            { tabVal === 0 &&
-                <Card>
-                    <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                        <Typography variant="h6" fontWeight={600} sx={{ mb: 1 }}>
-                            Invite Others
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                            Invitees can log in using their own Google accounts, and their data automatically connects to this cash flow spreadsheet.
-                        </Typography>
-
-                        <Box component="form" onSubmit={handleSubmitInvitation}>
-                            <Stack spacing={2}>
-                                <TextField
-                                    label="Google Mail"
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="example@gmail.com"
-                                    fullWidth
-                                    required
-                                />
-                                <TextField
-                                    select
-                                    label="Access"
-                                    value={role}
-                                    onChange={(e) => setRole(e.target.value)}
-                                    fullWidth
-                                >
-                                    {ROLES.map((r) => (
-                                        <MenuItem key={r.value} value={r.value}>{r.label}</MenuItem>
-                                    ))}
-                                </TextField>
-                                <Button type="submit" variant="contained" disabled={invitingUser || !email}>
-                                    {invitingUser ? 'Inviting...' : 'Send Invitation'}
-                                </Button>
-                            </Stack>
-                        </Box>
-
-                        {/* invited list */}
-                        <List sx={{ mt: 2 }}>
-                            {invitedList.map((inv) => (
-                                <ListItem
-                                    key={inv.email}
-                                    divider
-                                    sx={{
-                                        flexDirection: { xs: 'column', sm: 'row' },
-                                        alignItems: { xs: 'stretch', sm: 'center' },
-                                        gap: { xs: 1, sm: 0 },
-                                        py: { xs: 1.5, sm: 1 },
-                                    }}
-                                >
-                                    <ListItemText
-                                        primary={inv.email}
-                                        secondary={`Invited at ${new Date(inv.invitedAt).toLocaleDateString('id-ID')}`}
-                                        slotProps={{
-                                            sx: { wordBreak: 'break-all' },
-                                        }}
-                                        sx={{ pr: { sm: 2 } }}
-                                    />
-                                    <Box
-                                        sx={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: { xs: 'space-between', sm: 'flex-end' },
-                                            gap: 1,
-                                            width: { xs: '100%', sm: 'auto' },
-                                        }}
-                                    >
-                                        <Chip label={inv.role} size="small" />
-                                        <IconButton edge="end" onClick={() => handleRevoke(inv.email)}>
-                                            {revoking ? <CircularProgress size={16} color="inherit" /> : <DeleteIcon />}
-                                        </IconButton>
-                                    </Box>
-                                </ListItem>
-                            ))}
-                        </List>
-                    </CardContent>
-                </Card>
-            }
-
-            {tabVal === 1 &&
+            {tabVal === 0 &&
             <Box>
                 <Button variant="outlined" startIcon={<AddIcon />} onClick={() => setDialogOpen(true)}>
                     Add new category
@@ -216,28 +141,34 @@ export default function InvitePage() {
                     <DialogContent>
                         <Stack spacing={2} sx={{ mt: 1 }}>
                             <TextField
+                                size="small"
                                 label="Category Name"
-                                value={name}
-                                onChange={(e) => set(e.target.value)}
+                                value={addCategoryForm.name}
+                                onChange={handleFormChange('name')}
                                 fullWidth
                                 autoFocus
                             />
-                            <TextField
-                                select
-                                label="Tipe"
-                                value={type}
-                                onChange={(e) => setType(e.target.value)}
-                                fullWidth
-                            >
-                                {TYPES.map((t) => (
-                                    <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>
-                                ))}
-                            </TextField>
+                            <Autocomplete
+                                size="small"
+                                options={cashflowTypes}
+                                getOptionLabel={(option) => option.name}
+                                value={cashflowTypes.find((c) => c.id === addCategoryForm.cashflow_type_id) || null}
+                                onChange={(event, newValue) => {
+                                    setAddCategoryForm((f) => ({ ...f, cashflow_type_id : newValue?.id || '' }));
+                                }}
+                                isOptionEqualToValue={(option, value) => option.id === value.id}
+                                renderInput={(params) => (
+                                    <TextField {...params} label="Cashflow Type" fullWidth />
+                                )}
+                                slotProps={{
+                                    listbox: { sx: { maxHeight: 250 } },
+                                }}
+                            />
                         </Stack>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleClose}>Cancel</Button>
-                        <Button variant="contained" onClick={handleSubmitCategory} disabled={submitting || !name.trim()}>
+                        <Button variant="contained" onClick={handleSubmitCategory} disabled={submitting || !addCategoryForm.name.trim()}>
                             {submitting ? 'Saving...' : 'Save'}
                         </Button>
                     </DialogActions>
@@ -245,7 +176,7 @@ export default function InvitePage() {
             </Box>
             }
             {/* payment type list data */}
-            {tabVal === 2 &&
+            {tabVal === 1 &&
                 <Box>
                     <Button variant="outlined" startIcon={<AddIcon />} onClick={() => setPTdialog(true)}>
                         Add new Payment Type

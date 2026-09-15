@@ -20,9 +20,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         autoHideDuration={3000}
       >
         <BrowserRouter basename="/">
-          <GoogleOAuthProvider clientId="34527034983-bqq1kgjh66b8gp7fr4084p5slhsqma5s.apps.googleusercontent.com">
-            <App />
-          </GoogleOAuthProvider>
+          <App /> 
         </BrowserRouter>
       </SnackbarProvider>
     </CustomThemeProvider>

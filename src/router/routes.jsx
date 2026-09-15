@@ -9,9 +9,17 @@ import PrivacyPolicyPage from "../views/PrivacyPolicyPage";
 import TermsOfServicePage from "../views/TermsOfServicePage";
 
 import { ProtectedRoute } from './ProtectedRoute';
+import { PublicOnlyRoute } from "./PublicOnlyRoute";
 
 export const routes = [
-  {path: '/login', element: <LoginPage />},
+ {
+    path: '/login',
+    element: (
+      <PublicOnlyRoute>
+        <LoginPage />
+      </PublicOnlyRoute>
+    )
+  },
   { path: "/privacy-policy", title: "Settings", element: <PrivacyPolicyPage /> },
   { path: "/terms-of-service", title: "Settings", element: <TermsOfServicePage /> },
   {

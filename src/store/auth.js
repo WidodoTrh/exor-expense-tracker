@@ -1,3 +1,4 @@
+import { supabase } from '../lib/supabaseClient'
 import { create } from 'zustand';
 import { $axInstance } from './api';
 
@@ -6,28 +7,22 @@ const authProfiles = create((set, get) => ({
     loading: true,
     error: null,
     _fetchPromise: null,
+    _listenerAttached: false,
 
     // setter
     set_AUTH_PROFILE: (state_AUTH_PROFILE) => set({ state_AUTH_PROFILE }),
     setError: (error) => set({ error }),
+
     act_INIT_AUTH: async () => {
-        const inFlight = get()._fetchPromise;
-        if (inFlight) return inFlight;
+        const { data: { session } } = await supabase.auth.getSession();
+        set({ state_AUTH_PROFILE: session?.user ?? null, loading: false });
 
-        const promise = (async () => {
-            try {
-                const resp = await $axInstance.post('/auth/refresh');
-                set({ state_AUTH_PROFILE: resp.data, loading: false, _fetchPromise: null });
-                return resp.data;
-            } catch (error) {
-                // gapapa, berarti belum login
-                set({ state_AUTH_PROFILE: null, loading: false, _fetchPromise: null });
-                return null;
-            }
-        })();
-
-        set({ _fetchPromise: promise });
-        return promise;
+        if (!get()._listenerAttached) {
+            supabase.auth.onAuthStateChange((_event, session) => {
+                set({ state_AUTH_PROFILE: session?.user ?? null });
+            });
+            set({ _listenerAttached: true });
+        }
     },
 
     act_LOGIN_WITH_GOOGLE: async (code) => {
@@ -43,7 +38,7 @@ const authProfiles = create((set, get) => ({
 
     act_LOGOUT: async () => {
         try {
-            await $axInstance.post('/auth/logout');
+            await supabase.auth.signOut();
         } finally {
             set({ state_AUTH_PROFILE: null });
         }

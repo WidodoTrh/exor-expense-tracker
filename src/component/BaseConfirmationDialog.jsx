@@ -15,7 +15,6 @@ export function useConfirmDialog() {
         message: '',
     });
 
-    // simpan resolve function dari promise yang lagi jalan
     const resolveRef = useRef(null);
 
     const confirm = useCallback((title, message) => {
@@ -36,9 +35,6 @@ export function useConfirmDialog() {
 
     const handleNo = () => {
         setDialogState((prev) => ({ ...prev, open: false }));
-        // gak resolve apa-apa (biarin promise ga pernah resolve)
-        // atau kalo mau tetep resolve false, tinggal uncomment ini:
-        // if (resolveRef.current) resolveRef.current(false);
         resolveRef.current = null;
     };
 

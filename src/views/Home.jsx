@@ -27,16 +27,16 @@ function Home() {
     const [month, setMonth] = useState(now.getMonth() + 1);
     const [year, setYear] = useState(now.getFullYear());
     const { trx, trxError, onTrxLoad } = useTransactionsQuery();
-    const { summary, summaryLoading, summaryError } = useSummaryQuery({ month, year });
+    const { summary, dailySummary, categorySummary, summaryLoading, summaryError } = useSummaryQuery({ month, year });
     
     const dt_trx = [
-            {id: 'title', label: 'Transaction Title'},
-            {id: 'spent by', label: 'Spend By'},
-            {id: 'amount', label: 'Spend', render: (row) => formatRupiah(row?.amount)},
-            {id: 'category', label: 'Category'},
-            {id: 'payment type', label: 'Payment Type'},
-            {id: 'spend datetime', label: 'Date'},
-        ]
+        {id: 'description', label: 'Transaction Title'},
+        {id: 'user_id', label: 'Spend By', render: (row) => row.profiles.display_name},
+        {id: 'amount', label: 'Spend', render: (row) => formatRupiah(row?.amount)},
+        {id: 'categories', label: 'Category', render: (row) => row.categories.name},
+        {id: 'payment_type', label: 'Payment Type', render: (row) => row.payment_type.name ?? '-'},
+        {id: 'transaction_date', label: 'Date'},
+    ]
     
     return (
         <Container maxWidth={false} sx={{display: 'flex', flexDirection: 'column', flexGrow: 1}}>
@@ -48,7 +48,7 @@ function Home() {
                 <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
                     <FormControl size="small" sx={{ width: { xs: '100%', sm: 260 } }}>
                         <InputLabel>Select Month</InputLabel>
-                        <Select value={month} label="Bulan" onChange={(e) => setMonth(e.target.value)}>
+                        <Select value={month} label="Select Month" onChange={(e) => setMonth(e.target.value)}>
                             {MONTHS.map((m, i) => (
                                 <MenuItem key={i} value={i + 1}>{m}</MenuItem>
                             ))}
@@ -56,7 +56,7 @@ function Home() {
                     </FormControl>
                     <FormControl size="small" sx={{ width: { xs: '100%', sm: 260 } }}>
                         <InputLabel>Select Year</InputLabel>
-                        <Select value={year} label="Tahun" onChange={(e) => setYear(e.target.value)}>
+                        <Select value={year} label="Select Year" onChange={(e) => setYear(e.target.value)}>
                             {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map((y) => (
                                 <MenuItem key={y} value={y}>{y}</MenuItem>
                             ))}
@@ -66,32 +66,44 @@ function Home() {
 
                 <Grid container spacing={3}>
                     {/* Card total */}
-                    <Grid size={{ xs: 12, md: 7 }}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <Card>
                             <CardContent>
                             <Typography variant="body2" color="text.secondary">
-                                Total Spent Amount — {MONTHS[month - 1]} {year}
+                                Total Expense Amount — {MONTHS[month - 1]} {year}
                             </Typography>
                             <Typography variant="h4" fontWeight={700} sx={{ mt: 1 }}>
-                                {summaryLoading ? '...' : formatRupiah(summary?.total)}
+                                {summaryLoading ? '...' : formatRupiah(summary?.total_income)}
+                            </Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <Card>
+                            <CardContent>
+                            <Typography variant="body2" color="text.secondary">
+                                Total Expense Amount — {MONTHS[month - 1]} {year}
+                            </Typography>
+                            <Typography variant="h4" fontWeight={700} sx={{ mt: 1 }}>
+                                {summaryLoading ? '...' : formatRupiah(summary?.total_expense)}
                             </Typography>
                             </CardContent>
                         </Card>
                     </Grid>
 
-                    <Grid size={{ xs: 12, md: 7 }}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <ChartCard
                             height={400}
                             type="line"
                             title="Daily Trend"
                             loading={summaryLoading}
-                            data={summary?.daily?.map((d) => ({ x: d.day, amount: d.amount })) || []}
+                            data={dailySummary?.map((d) => ({ x: d.day, amount: d.total_expense })) || []}
                             xKey="x"
                             series={[{ key: 'amount', label: 'Amount', color: '#6366f1' }]}
                         />
                     </Grid>
 
-                    <Grid size={{ xs: 12, md: 5 }}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <ChartCard
                             height={400}
                             type="bar"
@@ -99,10 +111,10 @@ function Home() {
                             title="Spent by Category"
                             loading={summaryLoading}
                             data={
-                                summary?.byCategory
+                                categorySummary
                                 ?.slice()
-                                .sort((a, b) => b.amount - a.amount)
-                                .map((c) => ({ x: c.category, amount: c.amount })) || []
+                                .sort((a, b) => b.total_amount - a.total_amount)
+                                .map((c) => ({ x: c.category_name, amount: c.total_amount })) || []
                             }
                             xKey="x"
                             series={[{ key: 'amount', label: 'Amount', color: '#6366f1' }]}
