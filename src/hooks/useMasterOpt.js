@@ -35,7 +35,7 @@ export function usePaymentTypesQuery() {
     const userId = authProfiles((s) => s.state_AUTH_PROFILE?.id);
     const fetcher = () => $axInstance.get('/master/payment-types').then((res) => res.data.payment_type);
 
-    const { data, error } = useSWR(userId ? ['/master/payment-types', userId] : null, fetcher, {
+    const { data, error, mutate } = useSWR(userId ? ['/master/payment-types', userId] : null, fetcher, {
         revalidateOnFocus: false,
     });
 

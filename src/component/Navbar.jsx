@@ -9,6 +9,7 @@ import { useColorMode } from '../context/ThemeContext'
 import authProfiles from '../store/auth';
 import PersonIcon from '@mui/icons-material/Person'
 
+import { useMyProfileQuery } from '../hooks/useMyProfilesOpt';
 
 const navItems = [
   { label: 'Home', path: '/home' },
@@ -16,7 +17,7 @@ const navItems = [
 
 function Navbar({onToggleSidebar, sidebarOpen}) {
   const logoText = import.meta.env.VITE_APP_NAME
-  const myProfile = authProfiles((state) => state.state_AUTH_PROFILE)
+  const { myProfile } = useMyProfileQuery()
   const logoutBtn = authProfiles((s) => s.act_LOGOUT)
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -74,11 +75,11 @@ function Navbar({onToggleSidebar, sidebarOpen}) {
                 </IconButton>
               </Box>
               <Typography variant="body2" sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 700, marginX: 3 }}>
-                  {myProfile?.user?.name}
+                  {myProfile?.display_name}
               </Typography>
               <IconButton onClick={handleProfileClick}>
                 <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: 14 }} src={myProfile?.user?.picture}>
-                  {myProfile?.user?.name ? myProfile?.user?.name.charAt(0).toUpperCase() : <PersonIcon fontSize="small" />}
+                  {myProfile?.display_name ? myProfile?.display_name.charAt(0).toUpperCase() : <PersonIcon fontSize="small" />}
                 </Avatar>
               </IconButton>
             </Box>

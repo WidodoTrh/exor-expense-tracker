@@ -1,10 +1,10 @@
 import { Chip, Container, Box, Button, TextField, MenuItem, Stack, CircularProgress, Typography, Divider, Autocomplete } from "@mui/material";
 import { useEffect, useState } from 'react';
-import { useTransactionsQuery } from "../hooks/useTransactionsQuery";
+import { useTransactionsQuery } from "../hooks/useTransactionsOpt";
 import { useSnackbar } from 'notistack'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import global from "../appcore/global"
-import { usePaymentTypesQuery, useCategoriesQuery, useCashflowTypesQuery } from '../hooks/useMasterQuery';
+import { usePaymentTypesQuery, useCategoriesQuery, useCashflowTypesQuery } from '../hooks/useMasterOpt';
 
 function TransactionPage() {
     const { enqueueSnackbar } = useSnackbar()
@@ -15,7 +15,7 @@ function TransactionPage() {
 
     const { addTransaction } = useTransactionsQuery()
     const [form, setForm] = useState({
-        description: '', amount: '', category_id: '', payment_type_id: '', cashflow_type_id: '', transaction_date: global.formatDateLocal(new Date()) ,
+        description: '', amount: '', transaction_date: global.formatDateLocal(new Date()) ,
     });
     const [submitting, setSubmitting] = useState(false);
     const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -35,7 +35,7 @@ function TransactionPage() {
                 ...form,
                 amount: parseFloat(form.amount) || 0,
             });
-            setForm({ description: '', amount: '', category_id: '', payment_type_id: '', transaction_date: global.formatDateLocal(new Date())});
+            setForm({ description: '', amount: '', transaction_date: global.formatDateLocal(new Date())});
             enqueueSnackbar('Transaction saved successfuly', { variant: 'success', anchorOrigin: {vertical: 'top', horizontal: 'center'}});
         } catch (err) {
             console.error('Failed to add transaction:', err);

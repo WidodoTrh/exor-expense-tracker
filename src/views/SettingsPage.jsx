@@ -1,31 +1,36 @@
-import { useState } from 'react';
-import { Autocomplete, Box, Card, CardContent, Typography, TextField, Button, MenuItem, Stack, Container, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
+import { useState, useRef } from 'react';
+import { Tooltip, Autocomplete, Box, Card, CardContent, Typography, TextField, Button, MenuItem, Stack, Container, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import { useCategoriesQuery, useCashflowTypesQuery, usePaymentTypesQuery } from '../hooks/useMasterQuery';
+import { useCategoriesQuery, useCashflowTypesQuery, usePaymentTypesQuery } from '../hooks/useMasterOpt';
 import { SlideDownTransition, GrowTransition, ZoomTransition } from '../component/TransitionEffect';
 import { useConfirmDialog } from "../component/BaseConfirmationDialog"
+import { useInviteMember, useHouseholdMembersQuery } from '../hooks/useHouseholdOpt';
+import { useMyProfileQuery } from '../hooks/useMyProfilesOpt';
 
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DataTable from '../component/BaseDataTable'
-
-const TYPES = [
-  { value: 'expense', label: 'Expense' },
-  { value: 'income', label: 'Income' },
-];
+import GroupRemoveIcon from '@mui/icons-material/GroupRemove';
 
 export default function InvitePage() {
+    const { myProfile } = useMyProfileQuery()
     const { ListCategory, addCategory, dropCategory, onCategoryLoad } = useCategoriesQuery();
     const { cashflowTypes } = useCashflowTypesQuery();
-    const { ListPaymentType, onPaymenttypeLoad, addPaymentType } = usePaymentTypesQuery()
+    const { ListPaymentType, onPaymenttypeLoad, dropPaymentType, addPaymentType } = usePaymentTypesQuery()
+    const { members, memberOnLoad } = useHouseholdMembersQuery()
     const {confirm, ConfirmDialog} = useConfirmDialog()
 
+    const inputCategoryField = useRef(null)
+    const inputPaymentTypeField = useRef(null)
+
     const [ addCategoryForm, setAddCategoryForm] = useState({
-            name: '', cashflow_type_id: '',
+            name: '', 
+            cashflow_type_id: '',
         });
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [PTdialogOpen, setPTdialog] = useState(false);
+    const [ memberDialog, setMemberDialog ] = useState(false)
     const [deleting, setDeleting] = useState(false);
 
     const [pyType, setpyType] = useState('');
@@ -34,7 +39,7 @@ export default function InvitePage() {
     const [tabVal, setTabVal] = useState(0)
     const { enqueueSnackbar } = useSnackbar();
 
-    // dt categories
+    // init dt categories 
     const dt_categories = [
         {
             id: 'name',
@@ -45,11 +50,59 @@ export default function InvitePage() {
             label: 'Action',
             sortable: false,
             render: (row) => {
-                return <Button startIcon={<DeleteIcon />} color="error" onClick={() => getConfirmDialog(row)} disabled={deleting} />
+                return (
+                    <Tooltip title='Remove Category' placement="right">
+                        <Button startIcon={<DeleteIcon />} color="error" onClick={() => getConfirmDialog(row, 'category')} disabled={deleting} />
+                    </Tooltip>
+                ) 
             }
         }
     ]
-    const dt_paymentType = [{id: 'name', label: 'Payment Type'}]
+    // init dt paymentType
+    const dt_paymentType = [
+        {
+            id: 'name', 
+            label: 'Payment Type'
+        },
+        {
+            id: 'action',
+            label: 'Action',
+            sortable: false,
+            render: (row) => {
+                return (
+                    <Tooltip title='Remove Payment Type' placement="right">
+                        <Button startIcon={<DeleteIcon />} color="error" onClick={() => getConfirmDialog(row, 'payment_type')} disabled={deleting} />
+                    </Tooltip>
+                ) 
+            }
+        }
+    ]
+
+    // init dt members
+
+    const dt_housholdMember = [
+        {
+            id: 'name',
+            label: 'Member Name',
+            render: (row) => row.profiles.display_name
+        },
+        {
+            id: 'role',
+            label: 'Role'
+        },
+        {
+            id: 'action',
+            label: 'Action',
+            sortable: false,
+            render: (row) => {
+                return (
+                    <Tooltip title='Remove Member' placement="right">
+                        <Button startIcon={<GroupRemoveIcon />} color="error" onClick={() => getConfirmDialog(row, 'payment_type')} disabled={deleting} />
+                    </Tooltip> 
+                )
+            }
+        }
+    ]
 
     const handleFormChange = (field) => (e) => setAddCategoryForm((f) => ({ ...f, [field]: e.target.value }));
     const handleTabChange = (event, newVal) => (
@@ -84,10 +137,19 @@ export default function InvitePage() {
         }
     };
 
-    const drop_category = async (v) => {
+    const drop_typeof = async (v, c) => {
         setDeleting(true)
         try {
-            await dropCategory(v.id)
+            switch (c) {
+                case 'payment_type':
+                    await dropPaymentType(v.id)        
+                    break;
+                case 'category':
+                    await dropCategory(v.id)
+                    break;
+                default:
+                    throw new Error(`Unknown delete type : ${c}`)
+            }
             enqueueSnackbar(`${v.name} successfuly deleted`, { variant: 'success' });
         } catch (error) {
             const message = error?.response?.data?.error || error.message;
@@ -97,12 +159,12 @@ export default function InvitePage() {
         }
     }
 
-    const getConfirmDialog = async (v) => {
-        const currCategory = v.name
-        const message = `${currCategory} - Are you sure you want to delete this category ?`
-        const y = await confirm('Delete Category', message)
+    const getConfirmDialog = async (v,c) => {
+        const currVal = v.name
+        const message = `${currVal} - Are you sure you want to delete this category ?`
+        const y = await confirm('Delete', message)
         if (y) {
-            drop_category(v)
+            drop_typeof(v,c)
         }
     }
 
@@ -124,66 +186,92 @@ export default function InvitePage() {
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
             <Tabs value={tabVal} onChange={handleTabChange} sx={{marginY: 2}} variant="scrollable" scrollButtons="auto">
+                <Tab label="Household Member" />
                 <Tab label="Categories Configuration" />
                 <Tab label="Payment Type Configuration" />
             </Tabs>
             {ConfirmDialog}
 
             {tabVal === 0 &&
-            <Box>
-                <Button variant="outlined" startIcon={<AddIcon />} onClick={() => setDialogOpen(true)}>
-                    Add new category
-                </Button>
-                <DataTable loading={onCategoryLoad} columns={dt_categories} data={ListCategory} rowKey={(row) => row.id} defaultOrderBy="name" defaultOrder="asc" searchable searchPlaceholder="Search"/>
-
-                <Dialog open={dialogOpen} onClose={handleClose} fullWidth maxWidth="sm" slots={{transition: GrowTransition}} slotProps={{transition: {timeout: 650}}}>
-                    <DialogTitle>Add Category</DialogTitle>
-                    <DialogContent>
-                        <Stack spacing={2} sx={{ mt: 1 }}>
-                            <TextField
-                                size="small"
-                                label="Category Name"
-                                value={addCategoryForm.name}
-                                onChange={handleFormChange('name')}
-                                fullWidth
-                                autoFocus
-                            />
-                            <Autocomplete
-                                size="small"
-                                options={cashflowTypes}
-                                getOptionLabel={(option) => option.name}
-                                value={cashflowTypes.find((c) => c.id === addCategoryForm.cashflow_type_id) || null}
-                                onChange={(event, newValue) => {
-                                    setAddCategoryForm((f) => ({ ...f, cashflow_type_id : newValue?.id || '' }));
-                                }}
-                                isOptionEqualToValue={(option, value) => option.id === value.id}
-                                renderInput={(params) => (
-                                    <TextField {...params} label="Cashflow Type" fullWidth />
-                                )}
-                                slotProps={{
-                                    listbox: { sx: { maxHeight: 250 } },
-                                }}
-                            />
-                        </Stack>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={handleClose}>Cancel</Button>
-                        <Button variant="contained" onClick={handleSubmitCategory} disabled={submitting || !addCategoryForm.name.trim()}>
-                            {submitting ? 'Saving...' : 'Save'}
-                        </Button>
-                    </DialogActions>
-                </Dialog>
-            </Box>
+                <Box>
+                    <Button variant='contained' startIcon={<AddIcon />} onClick={() => setMemberDialog(true)}>
+                        Add member
+                    </Button>
+                    <InviteMemberDialog open={memberDialog} onClose={() => setMemberDialog(false)} householdId={myProfile?.household_id} />
+                    <DataTable loading={memberOnLoad} columns={dt_housholdMember} data={members} rowKey={(row) => row.user_id} defaultOrderBy="name" defaultOrder="asc" searchable searchPlaceholder="Search"/>
+                </Box>
             }
-            {/* payment type list data */}
+
             {tabVal === 1 &&
                 <Box>
-                    <Button variant="outlined" startIcon={<AddIcon />} onClick={() => setPTdialog(true)}>
+                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => setDialogOpen(true)}>
+                        Add new category
+                    </Button>
+                    <DataTable loading={onCategoryLoad} columns={dt_categories} data={ListCategory} rowKey={(row) => row.id} defaultOrderBy="name" defaultOrder="asc" searchable searchPlaceholder="Search"/>
+
+                    <Dialog 
+                        open={dialogOpen} 
+                        onClose={handleClose} 
+                        fullWidth 
+                        maxWidth="sm" 
+                        slots={{transition: GrowTransition}} 
+                        slotProps={{
+                            transition: {
+                                timeout: 650,
+                                onEntered: () => {
+                                    inputCategoryField.current?.focus()
+                                }
+                            }
+                        }}
+                    >
+                        <DialogTitle>Add Category</DialogTitle>
+                        <DialogContent>
+                            <Stack spacing={2} sx={{ mt: 1 }}>
+                                <TextField
+                                    size="small"
+                                    label="Category Name"
+                                    value={addCategoryForm.name}
+                                    onChange={handleFormChange('name')}
+                                    fullWidth
+                                    inputRef={inputCategoryField}
+                                />
+                                <Autocomplete
+                                    size="small"
+                                    options={cashflowTypes}
+                                    getOptionLabel={(option) => option.name}
+                                    value={cashflowTypes.find((c) => c.id === addCategoryForm.cashflow_type_id) || null}
+                                    onChange={(event, newValue) => {
+                                        setAddCategoryForm((f) => ({ ...f, cashflow_type_id : newValue?.id || '' }));
+                                    }}
+                                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Cashflow Type" fullWidth />
+                                    )}
+                                    slotProps={{
+                                        listbox: { sx: { maxHeight: 250 } },
+                                    }}
+                                />
+                            </Stack>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleClose}>Cancel</Button>
+                            <Button variant="contained" onClick={handleSubmitCategory} disabled={submitting || !addCategoryForm.name.trim()}>
+                                {submitting ? 'Saving...' : 'Save'}
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+                </Box>
+            }
+
+            {/* payment type list data */}
+            {tabVal === 2 &&
+                <Box>
+                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => setPTdialog(true)}>
                         Add new Payment Type
                     </Button>
                     <DataTable loading={onPaymenttypeLoad} columns={dt_paymentType} data={ListPaymentType} rowKey={(row) => row.id} defaultOrderBy="name" defaultOrder="asc" searchable searchPlaceholder="Search"/>
 
-                    <Dialog open={PTdialogOpen} onClose={handleClosePT} fullWidth maxWidth="sm" slots={{transition: GrowTransition}} slotProps={{transition: {timeout: 650}}}>
+                    <Dialog open={PTdialogOpen} onClose={handleClosePT} fullWidth maxWidth="sm" slots={{transition: GrowTransition}} slotProps={{transition: {timeout: 650, onEntered: () => inputPaymentTypeField.current?.focus()}}}>
                         <DialogTitle>Add Payment Type</DialogTitle>
                         <DialogContent>
                             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -192,7 +280,7 @@ export default function InvitePage() {
                                     value={pyType}
                                     onChange={(e) => setpyType(e.target.value)}
                                     fullWidth
-                                    autoFocus
+                                    inputRef={inputPaymentTypeField}
                                 />
                             </Stack>
                         </DialogContent>
@@ -205,7 +293,56 @@ export default function InvitePage() {
                     </Dialog>
                 </Box>
             }
-
         </Container>
     );
+}
+
+function InviteMemberDialog({ open, onClose, householdId }) {
+    const [email, setEmail] = useState('')
+    const [submitting, setSubmitting] = useState(false)
+    const { inviteMember } = useInviteMember()
+    const { enqueueSnackbar } = useSnackbar()
+
+    const handleSubmit = async () => {
+        if (!email.trim()) return
+        setSubmitting(true)
+        try {
+            await inviteMember({ email: email.trim(), household_id: householdId })
+            enqueueSnackbar('Add member successfuly', { variant: 'success' })
+            setEmail('')
+            onClose()
+        } catch (err) {
+            const message = err?.response?.data?.error || err.message
+            enqueueSnackbar(message, { variant: 'error' })
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
+    const onDialogMemberClose = () => {
+        setEmail('')
+    }
+
+    return (
+        <Dialog open={open} onClose={onDialogMemberClose} fullWidth maxWidth="xs" slots={{transition: GrowTransition}} slotProps={{transition: {timeout: 650}}}>
+            <DialogTitle>Invite Member</DialogTitle>
+            <DialogContent>
+                <TextField
+                    label="Email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    fullWidth
+                    sx={{ mt: 1 }}
+                    helperText="Inveted user must have an account on this app first"
+                />
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose}>Cancel</Button>
+                <Button variant="contained" onClick={handleSubmit} disabled={!email || submitting}>
+                    {submitting ? 'Inviting...' : 'Invite'}
+                </Button>
+            </DialogActions>
+        </Dialog>
+    )
 }

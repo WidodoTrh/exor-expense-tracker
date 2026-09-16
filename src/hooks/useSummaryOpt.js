@@ -20,7 +20,10 @@ export function useSummaryQuery({ month, year } = {}) {
     return {
         summary: data?.monthly ?? null,
         dailySummary: data?.daily ?? [],
-        categorySummary: data?.by_category ?? [],
+        categorySummary: {
+            income: data?.by_category?.income ?? [],
+            expense: data?.by_category?.expense ?? [],
+        },
         summaryLoading: isLoading,
         summaryError,
         refetch: mutate,

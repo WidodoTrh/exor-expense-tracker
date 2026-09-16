@@ -2,8 +2,8 @@ import { Box, Grid, Container, FormControl, Card, CardContent, Typography, MenuI
 import DataTable from '../component/BaseDataTable'
 import { useState, useEffect } from 'react'
 import ChartCard from "../component/ChartCard";
-import { useTransactionsQuery } from "../hooks/useTransactionsQuery";
-import { useSummaryQuery } from "../hooks/useSummaryQuery";
+import { useTransactionsQuery } from "../hooks/useTransactionsOpt";
+import { useSummaryQuery } from "../hooks/useSummaryOpt";
 
 const MONTHS = [
   'Januari', 
@@ -31,12 +31,14 @@ function Home() {
     
     const dt_trx = [
         {id: 'description', label: 'Transaction Title'},
-        {id: 'user_id', label: 'Spend By', render: (row) => row.profiles.display_name},
+        {id: 'user_id', label: 'Spend By', render: (row) => row.profiles?.display_name ?? '-'},
         {id: 'amount', label: 'Spend', render: (row) => formatRupiah(row?.amount)},
         {id: 'categories', label: 'Category', render: (row) => row.categories.name},
         {id: 'payment_type', label: 'Payment Type', render: (row) => row.payment_type.name ?? '-'},
         {id: 'transaction_date', label: 'Date'},
     ]
+
+    // console.log('trx')
     
     return (
         <Container maxWidth={false} sx={{display: 'flex', flexDirection: 'column', flexGrow: 1}}>
@@ -70,7 +72,7 @@ function Home() {
                         <Card>
                             <CardContent>
                             <Typography variant="body2" color="text.secondary">
-                                Total Expense Amount — {MONTHS[month - 1]} {year}
+                                Total Income — {MONTHS[month - 1]} {year}
                             </Typography>
                             <Typography variant="h4" fontWeight={700} sx={{ mt: 1 }}>
                                 {summaryLoading ? '...' : formatRupiah(summary?.total_income)}
@@ -82,7 +84,7 @@ function Home() {
                         <Card>
                             <CardContent>
                             <Typography variant="body2" color="text.secondary">
-                                Total Expense Amount — {MONTHS[month - 1]} {year}
+                                Total Expense — {MONTHS[month - 1]} {year}
                             </Typography>
                             <Typography variant="h4" fontWeight={700} sx={{ mt: 1 }}>
                                 {summaryLoading ? '...' : formatRupiah(summary?.total_expense)}
@@ -111,7 +113,7 @@ function Home() {
                             title="Spent by Category"
                             loading={summaryLoading}
                             data={
-                                categorySummary
+                                categorySummary.expense
                                 ?.slice()
                                 .sort((a, b) => b.total_amount - a.total_amount)
                                 .map((c) => ({ x: c.category_name, amount: c.total_amount })) || []

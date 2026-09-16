@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useTheme, Drawer, Box, Button, Tooltip,Typography, Divider, useMediaQuery, IconButton, Avatar, Menu, MenuItem  } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom'
 import { useColorMode } from '../context/ThemeContext'
+import { useMyProfileQuery } from '../hooks/useMyProfilesOpt';
 
 import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
@@ -9,6 +10,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import SettingsIcon from '@mui/icons-material/Settings';
 import authProfiles from '../store/auth';
+import PersonIcon from '@mui/icons-material/Person';
 
 const navItems = [
   { label: 'Dashboard', path: '/home', menuIcon: <HomeIcon fontSize='small' />  },
@@ -19,7 +21,7 @@ const navItems = [
 const MINI_WIDTH = 72;
 
 function Sidebar({ open, width, onClose }) {
-    const myProfile = authProfiles((state) => state.state_AUTH_PROFILE)
+    const { myProfile } = useMyProfileQuery()
     const logoutBtn = authProfiles((s) => s.act_LOGOUT)
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -109,7 +111,7 @@ function Sidebar({ open, width, onClose }) {
                         <Divider sx={{marginY: 3}} />
                         <IconButton onClick={handleProfileClick} sx={{marginX: 1}}>
                             <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: 14 }} src={myProfile?.user?.picture}>
-                                {myProfile?.user?.name ? myProfile?.user?.name.charAt(0).toUpperCase() : <PersonIcon fontSize="small" />}
+                                {myProfile?.display_name ? myProfile?.display_name.charAt(0).toUpperCase() : <PersonIcon fontSize="small" />}
                             </Avatar>
                         </IconButton>
                     </Box>
@@ -129,10 +131,10 @@ function Sidebar({ open, width, onClose }) {
                         }}
                     >
                         <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: 14 }} src={myProfile?.user?.picture}>
-                            {myProfile?.user?.name ? myProfile?.user?.name.charAt(0).toUpperCase() : <PersonIcon fontSize="small" />}
+                            {myProfile?.display_name ? myProfile?.display_name.charAt(0).toUpperCase() : <PersonIcon fontSize="small" />}
                         </Avatar>
                         <Typography variant="body2" sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 700, marginX: 1 }}>
-                            {myProfile?.user?.name}
+                            {myProfile?.display_name}
                         </Typography>
                     </Box>
                 )}
