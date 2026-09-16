@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabaseClient';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, Paper, Stack, CircularProgress, Divider, Tab, Tabs, TextField, InputAdornment, IconButton  } from '@mui/material';
+import { Box, Typography, Button, Paper, Stack, CircularProgress, Divider, Tab, Tabs, TextField, InputAdornment, IconButton } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import { useSnackbar } from 'notistack'
 import Visibility from '@mui/icons-material/Visibility'
@@ -30,9 +30,9 @@ export default function LoginPage() {
             emailMode === 'login'
                 ? await supabase.auth.signInWithPassword({ email, password })
                 : await supabase.auth.signUp({
-                     email, 
+                     email,
                      password,
-                     options: {data : {full_name: DisplayName }}
+                     options: { data: { full_name: DisplayName } }
                 })
 
         setIsSubmittingEmail(false)
@@ -62,9 +62,7 @@ export default function LoginPage() {
         }
     }
 
-    const handleTabChange = (event, newVal) => (
-        setEmailMode(newVal)
-    )
+    const handleTabChange = (event, newVal) => setEmailMode(newVal)
 
     return (
         <Box
@@ -73,39 +71,36 @@ export default function LoginPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-
-                px: 2,
+                bgcolor: 'background.default',
+                px: 1,
+                marginY:3
             }}
         >
             <Paper
-                elevation={0}
+                elevation={2}
                 sx={{
-                    p: { xs: 3, sm: 5 },
+                    p: { xs: 2, sm: 3 },
                     borderRadius: 3,
                     textAlign: 'center',
                     width: '100%',
                     maxWidth: 400,
                     mx: 'auto',
-                    background: 'rgba(255, 255, 255, 0.15)',
-                    backdropFilter: 'blur(16px)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
                 }}
-            >   
-                <Tabs value={emailMode} onChange={handleTabChange} sx={{marginY: 2}} variant='fullWidth' >
+            >
+                <Tabs value={emailMode} onChange={handleTabChange} sx={{ marginY: 2 }} variant='fullWidth'>
                     <Tab label="Sign In" value="login" />
-                    <Tab label="Sign Up" value="signup"/>
+                    <Tab label="Sign Up" value="signup" />
                 </Tabs>
 
-                { emailMode === 'login' && 
+                {emailMode === 'login' &&
                     <Stack spacing={2}>
-                        <Typography variant="h3" fontWeight={600} color="white">
+                        <Typography variant="h3" fontWeight={600} color="text.primary">
                             Exordium
                         </Typography>
-                        <Typography variant="h6">
+                        <Typography variant="h6" color="text.primary">
                             Expense Tracker App
                         </Typography>
-                        <Typography variant="body2">
+                        <Typography variant="body2" color="text.secondary">
                             Sign in with your Google account to start tracking your cashflow
                         </Typography>
                         <Button
@@ -119,7 +114,7 @@ export default function LoginPage() {
                         </Button>
 
                         <Divider sx={{ my: 1 }}>
-                            <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                            <Typography variant="caption" color="text.secondary">
                                 or
                             </Typography>
                         </Divider>
@@ -133,11 +128,6 @@ export default function LoginPage() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 fullWidth
-                                sx={{
-                                    '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.15)' },
-                                    '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.8)' },
-                                    input: { color: 'white' },
-                                }}
                             />
                             <TextField
                                 label="Password"
@@ -152,28 +142,19 @@ export default function LoginPage() {
                                     input: {
                                         endAdornment: (
                                             <InputAdornment position="end">
-                                                <IconButton
-                                                    onClick={() => setShowPassword((prev) => !prev)}
-                                                    edge="end"
-                                                    sx={{ color: 'rgba(255,255,255,0.8)' }}
-                                                >
+                                                <IconButton onClick={() => setShowPassword((prev) => !prev)} edge="end">
                                                     {showPassword ? <VisibilityOff /> : <Visibility />}
                                                 </IconButton>
                                             </InputAdornment>
                                         ),
                                     },
                                 }}
-                                sx={{
-                                    '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.15)' },
-                                    '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.8)' },
-                                    input: { color: 'white' },
-                                }}
                             />
                             <Button
                                 type="submit"
                                 variant="outlined"
                                 disabled={isSubmittingEmail}
-                                sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.5)', textTransform: 'none' }}
+                                sx={{ textTransform: 'none' }}
                                 fullWidth
                             >
                                 {isSubmittingEmail ? <CircularProgress size={16} color="inherit" /> : (emailMode === 'login' ? 'Sign in with Email' : 'Create Account')}
@@ -181,31 +162,19 @@ export default function LoginPage() {
                             <Typography
                                 variant="caption"
                                 onClick={() => setEmailMode(emailMode === 'login' ? 'signup' : 'login')}
-                                sx={{ color: 'rgba(255,255,255,0.8)', cursor: 'pointer', textDecoration: 'underline' }}
+                                sx={{ color: 'primary.main', cursor: 'pointer', textDecoration: 'underline' }}
                             >
                                 {emailMode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
                             </Typography>
                         </Box>
 
-                        <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)', display: 'block', mt: 2 }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
                             By signing in, you agree to our{' '}
-                            <Box
-                                component="a"
-                                href="/terms-of-service"
-                                target="_blank"
-                                rel="noreferrer"
-                                sx={{ color: 'white', textDecoration: 'underline' }}
-                            >
+                            <Box component="a" href="/terms-of-service" target="_blank" rel="noreferrer" sx={{ color: 'primary.main' }}>
                                 Terms of Service
                             </Box>{' '}
                             and{' '}
-                            <Box
-                                component="a"
-                                href="/privacy-policy"
-                                target="_blank"
-                                rel="noreferrer"
-                                sx={{ color: 'white', textDecoration: 'underline' }}
-                            >
+                            <Box component="a" href="/privacy-policy" target="_blank" rel="noreferrer" sx={{ color: 'primary.main' }}>
                                 Privacy Policy
                             </Box>.
                         </Typography>
@@ -216,12 +185,12 @@ export default function LoginPage() {
                         </Typography>
                     </Stack>
                 }
-                { emailMode === 'signup' &&
+                {emailMode === 'signup' &&
                     <Stack spacing={2}>
-                        <Typography variant="h3" fontWeight={600} color="white">
+                        <Typography variant="h3" fontWeight={600} color="text.primary">
                             Exordium
                         </Typography>
-                        <Typography variant="h6">
+                        <Typography variant="h6" color="text.primary">
                             Expense Tracker App
                         </Typography>
 
@@ -235,11 +204,6 @@ export default function LoginPage() {
                                 required
                                 fullWidth
                                 size="small"
-                                sx={{
-                                    '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.15)' },
-                                    '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.8)' },
-                                    input: { color: 'white' },
-                                }}
                             />
                             <TextField
                                 label="Email"
@@ -249,11 +213,6 @@ export default function LoginPage() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 fullWidth
-                                sx={{
-                                    '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.15)' },
-                                    '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.8)' },
-                                    input: { color: 'white' },
-                                }}
                             />
                             <TextField
                                 label="Password"
@@ -268,28 +227,19 @@ export default function LoginPage() {
                                     input: {
                                         endAdornment: (
                                             <InputAdornment position="end">
-                                                <IconButton
-                                                    onClick={() => setShowPassword((prev) => !prev)}
-                                                    edge="end"
-                                                    sx={{ color: 'rgba(255,255,255,0.8)' }}
-                                                >
+                                                <IconButton onClick={() => setShowPassword((prev) => !prev)} edge="end">
                                                     {showPassword ? <VisibilityOff /> : <Visibility />}
                                                 </IconButton>
                                             </InputAdornment>
                                         ),
                                     },
                                 }}
-                                sx={{
-                                    '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.15)' },
-                                    '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.8)' },
-                                    input: { color: 'white' },
-                                }}
                             />
                             <Button
                                 type="submit"
                                 variant="outlined"
                                 disabled={isSubmittingEmail}
-                                sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.5)', textTransform: 'none' }}
+                                sx={{ textTransform: 'none' }}
                                 fullWidth
                             >
                                 {isSubmittingEmail ? <CircularProgress size={16} color="inherit" /> : (emailMode === 'login' ? 'Sign in with Email' : 'Create Account')}
@@ -297,31 +247,19 @@ export default function LoginPage() {
                             <Typography
                                 variant="caption"
                                 onClick={() => setEmailMode(emailMode === 'login' ? 'signup' : 'login')}
-                                sx={{ color: 'rgba(255,255,255,0.8)', cursor: 'pointer', textDecoration: 'underline' }}
+                                sx={{ color: 'primary.main', cursor: 'pointer', textDecoration: 'underline' }}
                             >
                                 {emailMode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
                             </Typography>
                         </Box>
 
-                        <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)', display: 'block', mt: 2 }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
                             By signing in, you agree to our{' '}
-                            <Box
-                                component="a"
-                                href="/terms-of-service"
-                                target="_blank"
-                                rel="noreferrer"
-                                sx={{ color: 'white', textDecoration: 'underline' }}
-                            >
+                            <Box component="a" href="/terms-of-service" target="_blank" rel="noreferrer" sx={{ color: 'primary.main' }}>
                                 Terms of Service
                             </Box>{' '}
                             and{' '}
-                            <Box
-                                component="a"
-                                href="/privacy-policy"
-                                target="_blank"
-                                rel="noreferrer"
-                                sx={{ color: 'white', textDecoration: 'underline' }}
-                            >
+                            <Box component="a" href="/privacy-policy" target="_blank" rel="noreferrer" sx={{ color: 'primary.main' }}>
                                 Privacy Policy
                             </Box>.
                         </Typography>
