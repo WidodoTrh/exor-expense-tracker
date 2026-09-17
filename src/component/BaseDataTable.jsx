@@ -1,24 +1,5 @@
 import { useState, useMemo } from 'react'
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    TablePagination,
-    TableSortLabel,
-    Paper,
-    Checkbox,
-    Skeleton,
-    Box,
-    Typography,
-    Toolbar,
-    Alert,
-    TextField,
-    InputAdornment,
-    IconButton,
-} from '@mui/material'
+import { useMediaQuery, useTheme, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, TableSortLabel, Paper, Checkbox, Skeleton, Box, Typography, Toolbar, Alert, TextField, InputAdornment, IconButton } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
 
@@ -80,6 +61,11 @@ export default function DataTable({
     fixedLayout = true,
     minTableWidth = 650,
 }) {
+
+    //  -- mobile layout declare --
+
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
     // ---------- sorting state (local, dipakai kalau bukan serverSide) ----------
     const [order, setOrder] = useState(defaultOrder)
     const [orderBy, setOrderBy] = useState(defaultOrderBy || columns?.[0]?.id || '')
@@ -287,7 +273,8 @@ export default function DataTable({
                                 value={searchInputValue}
                                 onChange={handleSearchInputChange}
                                 placeholder={searchPlaceholder}
-                                sx={{ minWidth: 220 }}
+                                fullWidth={isMobile}
+                                sx={{ minWidth: isMobile ? 'auto' : 220, flex: isMobile ? '1 1 100%' : 'unset' }}
                                 slotProps={{
                                     input: {
                                         startAdornment: (
@@ -453,7 +440,6 @@ export default function DataTable({
                     </TableBody>
                 </Table>
             </TableContainer>
-
             <TablePagination
                 component="div"
                 count={effectiveRowCount}
@@ -463,6 +449,17 @@ export default function DataTable({
                 onRowsPerPageChange={handleChangeRowsPerPage}
                 rowsPerPageOptions={rowsPerPageOptions}
                 disabled={loading}
+                sx={{
+                    '& .MuiTablePagination-toolbar': {
+                        flexWrap: 'wrap',
+                        justifyContent: 'center',
+                        rowGap: 1,
+                        py: 1,
+                    },
+                    '& .MuiTablePagination-spacer': {
+                        display: { xs: 'none', sm: 'block' },
+                    },
+                }}
             />
         </Paper>
     )
