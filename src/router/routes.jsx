@@ -7,6 +7,8 @@ import TransactionPage from "../views/TransactionPage";
 import InvitePage from "../views/SettingsPage";
 import PrivacyPolicyPage from "../views/PrivacyPolicyPage";
 import TermsOfServicePage from "../views/TermsOfServicePage";
+import ForgotPasswordPage from "../views/ForgotPasswordPage";
+import ResetPasswordPage from "../views/ResetPasswordPage";
 
 import { ProtectedRoute } from './ProtectedRoute';
 import { PublicOnlyRoute } from "./PublicOnlyRoute";
@@ -17,6 +19,22 @@ export const routes = [
     element: (
       <PublicOnlyRoute>
         <LoginPage />
+      </PublicOnlyRoute>
+    )
+  },
+ {
+    path: '/forgot-password',
+    element: (
+      <PublicOnlyRoute>
+        <ForgotPasswordPage />
+      </PublicOnlyRoute>
+    )
+  },
+ {
+    path: '/reset-password',
+    element: (
+      <PublicOnlyRoute>
+        <ForgotPasswordPage />
       </PublicOnlyRoute>
     )
   },

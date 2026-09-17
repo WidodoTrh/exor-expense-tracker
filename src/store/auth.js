@@ -18,8 +18,12 @@ const authProfiles = create((set, get) => ({
         set({ state_AUTH_PROFILE: session?.user ?? null, loading: false });
 
         if (!get()._listenerAttached) {
-            supabase.auth.onAuthStateChange((_event, session) => {
+            supabase.auth.onAuthStateChange((event, session) => {
                 set({ state_AUTH_PROFILE: session?.user ?? null });
+
+                if (event === 'PASSWORD_RECOVERY') {
+                    window.location.href = '/reset-password';
+                }
             });
             set({ _listenerAttached: true });
         }

@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabaseClient';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Box, Typography, Button, Paper, Stack, CircularProgress, Divider, Tab, Tabs, TextField, InputAdornment, IconButton } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import { useSnackbar } from 'notistack'
@@ -83,7 +83,7 @@ export default function LoginPage() {
                     borderRadius: 3,
                     textAlign: 'center',
                     width: '100%',
-                    maxWidth: 400,
+                    maxWidth: 600,
                     mx: 'auto',
                 }}
             >
@@ -105,9 +105,9 @@ export default function LoginPage() {
                         </Typography>
                         <Button
                             variant="contained"
-                            startIcon={isLoggingIn ? <CircularProgress size={16} color="inherit" /> : <GoogleIcon />}
+                            startIcon={isLoggingIn ? <CircularProgress color="inherit" /> : <GoogleIcon />}
                             onClick={() => handleGoogleLogin()}
-                            sx={{ mt: 2, textTransform: 'none' }}
+                            sx={{ marginY: 2, textTransform: 'none' }}
                             disabled={isLoggingIn}
                         >
                             {isLoggingIn ? 'Signing in...' : 'Sign in with Google'}
@@ -166,7 +166,16 @@ export default function LoginPage() {
                             >
                                 {emailMode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
                             </Typography>
+                            <Typography
+                                component={Link}
+                                to="/forgot-password"
+                                variant="caption"
+                                sx={{color: 'primary.main', textDecoration: 'underline', display: 'block', textAlign: 'center' }}
+                            >
+                                Forgot password?
+                            </Typography>
                         </Box>
+                        
 
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
                             By signing in, you agree to our{' '}
@@ -178,6 +187,7 @@ export default function LoginPage() {
                                 Privacy Policy
                             </Box>.
                         </Typography>
+                        
                         <Divider sx={{ marginY: 2 }} />
                         <Typography variant="caption" color="text.secondary">© {year} {COMPANY_NAME}. All rights reserved.</Typography>
                         <Typography variant="caption" color="text.secondary">
