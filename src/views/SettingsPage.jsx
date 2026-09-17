@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Tooltip, Autocomplete, Box, Card, CardContent, Typography, TextField, Button, MenuItem, Stack, Container, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
+import { Chip, useTheme, useMediaQuery, Tooltip, Autocomplete, Box, Card, CardContent, Typography, TextField, Button, MenuItem, Stack, Container, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import { useCategoriesQuery, useCashflowTypesQuery, usePaymentTypesQuery } from '../hooks/useMasterOpt';
 import { SlideDownTransition, GrowTransition, ZoomTransition } from '../component/TransitionEffect';
@@ -13,6 +13,8 @@ import DataTable from '../component/BaseDataTable'
 import GroupRemoveIcon from '@mui/icons-material/GroupRemove';
 
 export default function InvitePage() {
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
     const { myProfile } = useMyProfileQuery()
     const { ListCategory, addCategory, dropCategory, onCategoryLoad } = useCategoriesQuery();
     const { cashflowTypes } = useCashflowTypesQuery();
@@ -43,7 +45,8 @@ export default function InvitePage() {
     const dt_categories = [
         {
             id: 'name',
-            label: 'Category Title'
+            label: 'Category Title',
+            noWrap: false,
         },
         {
             id: 'action',
@@ -55,14 +58,16 @@ export default function InvitePage() {
                         <Button startIcon={<DeleteIcon />} color="error" onClick={() => getConfirmDialog(row, 'category')} disabled={deleting} />
                     </Tooltip>
                 ) 
-            }
+            },
+            noWrap: false
         }
     ]
     // init dt paymentType
     const dt_paymentType = [
         {
             id: 'name', 
-            label: 'Payment Type'
+            label: 'Payment Type',
+            noWrap: false,
         },
         {
             id: 'action',
@@ -84,11 +89,18 @@ export default function InvitePage() {
         {
             id: 'name',
             label: 'Member Name',
-            render: (row) => row.profiles.display_name
+            render: (row) => row.profiles.display_name,
+            noWrap: false
         },
         {
             id: 'role',
-            label: 'Role'
+            label: 'Role',
+            noWrap: true,
+            render: (row) => {
+                return ( 
+                    <Chip label={row.role} />
+                )
+            }
         },
         {
             id: 'action',
@@ -100,7 +112,8 @@ export default function InvitePage() {
                         <Button startIcon={<GroupRemoveIcon />} color="error" onClick={() => getConfirmDialog(row, 'payment_type')} disabled={deleting} />
                     </Tooltip> 
                 )
-            }
+            },
+            noWrap: true
         }
     ]
 
@@ -185,7 +198,7 @@ export default function InvitePage() {
 
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
-            <Tabs value={tabVal} onChange={handleTabChange} sx={{marginY: 2}} variant="scrollable" scrollButtons="auto">
+            <Tabs value={tabVal} onChange={handleTabChange} sx={{marginY: 2}} variant={isMobile ? 'fullWidth' : 'scrollable'} scrollButtons={isMobile ? false : 'auto'}>
                 <Tab label="Household Member" />
                 <Tab label="Categories Configuration" />
                 <Tab label="Payment Type Configuration" />
@@ -198,7 +211,7 @@ export default function InvitePage() {
                         Add member
                     </Button>
                     <InviteMemberDialog open={memberDialog} onClose={() => setMemberDialog(false)} householdId={myProfile?.household_id} />
-                    <DataTable loading={memberOnLoad} columns={dt_housholdMember} data={members} rowKey={(row) => row.user_id} defaultOrderBy="name" defaultOrder="asc" searchable searchPlaceholder="Search"/>
+                    <DataTable minTableWidth={0} loading={memberOnLoad} columns={dt_housholdMember} data={members} rowKey={(row) => row.user_id} defaultOrderBy="name" defaultOrder="asc" searchable searchPlaceholder="Search"/>
                 </Box>
             }
 
@@ -207,7 +220,7 @@ export default function InvitePage() {
                     <Button variant="contained" startIcon={<AddIcon />} onClick={() => setDialogOpen(true)}>
                         Add new category
                     </Button>
-                    <DataTable loading={onCategoryLoad} columns={dt_categories} data={ListCategory} rowKey={(row) => row.id} defaultOrderBy="name" defaultOrder="asc" searchable searchPlaceholder="Search"/>
+                    <DataTable minTableWidth={0} loading={onCategoryLoad} columns={dt_categories} data={ListCategory} rowKey={(row) => row.id} defaultOrderBy="name" defaultOrder="asc" searchable searchPlaceholder="Search"/>
 
                     <Dialog 
                         open={dialogOpen} 
@@ -269,7 +282,7 @@ export default function InvitePage() {
                     <Button variant="contained" startIcon={<AddIcon />} onClick={() => setPTdialog(true)}>
                         Add new Payment Type
                     </Button>
-                    <DataTable loading={onPaymenttypeLoad} columns={dt_paymentType} data={ListPaymentType} rowKey={(row) => row.id} defaultOrderBy="name" defaultOrder="asc" searchable searchPlaceholder="Search"/>
+                    <DataTable minTableWidth={0} loading={onPaymenttypeLoad} columns={dt_paymentType} data={ListPaymentType} rowKey={(row) => row.id} defaultOrderBy="name" defaultOrder="asc" searchable searchPlaceholder="Search"/>
 
                     <Dialog open={PTdialogOpen} onClose={handleClosePT} fullWidth maxWidth="sm" slots={{transition: GrowTransition}} slotProps={{transition: {timeout: 650, onEntered: () => inputPaymentTypeField.current?.focus()}}}>
                         <DialogTitle>Add Payment Type</DialogTitle>

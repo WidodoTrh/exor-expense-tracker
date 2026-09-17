@@ -11,6 +11,7 @@ import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import SettingsIcon from '@mui/icons-material/Settings';
 import authProfiles from '../store/auth';
 import PersonIcon from '@mui/icons-material/Person';
+import exrLogo from '../assets/exr-logo.png'
 
 const navItems = [
   { label: 'Dashboard', path: '/home', menuIcon: <HomeIcon fontSize='small' />  },
@@ -24,7 +25,7 @@ function Sidebar({ open, width, onClose }) {
     const { myProfile } = useMyProfileQuery()
     const logoutBtn = authProfiles((s) => s.act_LOGOUT)
     const theme = useTheme()
-    const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
     const location = useLocation();
     const { toggleColorMode } = useColorMode()
     const currentWidth = open ? width : MINI_WIDTH;
@@ -77,15 +78,18 @@ function Sidebar({ open, width, onClose }) {
                     zIndex: (theme) => theme.zIndex.drawer,
                 },
             }}
-        >
-            <Divider />
-            <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column', alignItems: 'start', paddingY: 3 }}>
+        >   
+            <Box sx={{display: 'flex', justifyContent: 'center', height: 40}}>
+                
+            </Box>
+            {/* <Divider /> */}
+            <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column', paddingY: 3 }}>
                 {navItems.map((item) => {
                     const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(`${item.path}/`));
                     return (
                         <Tooltip key={item.path} title={!open ? item.label : ''} placement="right">
                             <Button
-                                fullWidth
+                                size="large"
                                 startIcon={open ? item.menuIcon : null}
                                 component={Link}
                                 to={item.path}
@@ -94,10 +98,12 @@ function Sidebar({ open, width, onClose }) {
                                 sx={{
                                     justifyContent: open ? 'flex-start' : 'center',
                                     minWidth: 0,
-                                    color: isActive ? 'primary.main' : 'text.primary',
+                                    color: isActive ? 'primary.contrastText' : 'text.primary',
+                                    bgcolor: isActive ? 'secondary.main' : '',
                                     fontWeight: isActive ? 700 : 400,
-                                    borderRadius: 0,
+                                    borderRadius: 2,
                                     px: open ? 2 : 0,
+                                    marginX: 2
                                 }}
                             >
                                 {open ? item.label : item.menuIcon}

@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useState, useEffect } from 'react'
-import { ThemeProvider, createTheme, CssBaseline } from '@mui/material'
+import { ThemeProvider, createTheme, CssBaseline, responsiveFontSizes } from '@mui/material'
 
 const ColorModeContext = createContext({ toggleColorMode: () => {} })
 
@@ -31,42 +31,42 @@ export function CustomThemeProvider({ children }) {
   )
 
   const theme = useMemo(
-    () =>
-      createTheme({
+    () => {
+      let baseTheme = createTheme({
         palette: {
           mode,
           primary: {
-            main: '#6366f1',      // Bootstrap blue
+            main: '#6366f1',
             light: '#818cf8',
             dark: '#4f46e5',
             contrastText: '#ffffff',
           },
           secondary: {
-            main: '#6c757d',      // Bootstrap gray
+            main: '#6c757d',
             light: '#8a9299',
             dark: '#565e64',
             contrastText: '#ffffff',
           },
           error: {
-            main: '#dc3545',      // Bootstrap red (danger)
+            main: '#dc3545',
             light: '#e35d6a',
             dark: '#b02a37',
             contrastText: '#ffffff',
           },
           warning: {
-            main: '#ffc107',      // Bootstrap yellow
+            main: '#ffc107',
             light: '#ffcd39',
             dark: '#cc9a06',
             contrastText: '#000000',
           },
           info: {
-            main: '#0dcaf0',      // Bootstrap cyan
+            main: '#0dcaf0',
             light: '#3dd5f3',
             dark: '#0aa2c0',
             contrastText: '#000000',
           },
           success: {
-            main: '#198754',      // Bootstrap green
+            main: '#198754',
             light: '#479f76',
             dark: '#146c43',
             contrastText: '#ffffff',
@@ -87,7 +87,10 @@ export function CustomThemeProvider({ children }) {
             textTransform: 'none'
           }
         }
-      }),
+      })
+
+      return responsiveFontSizes(baseTheme)
+    },
     [mode]
   )
 
