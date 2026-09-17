@@ -21,6 +21,11 @@ export function useTransactionsQuery() {
         mutate();
     };
 
+    const updateTrx = async (id, updatedTrx) => {
+        await $axInstance.put('/sheets/trx', {id, ...updatedTrx})
+        mutate()
+    }
+
     return {
         trx: data ?? [],
         onTrxLoad: isLoading,
@@ -28,5 +33,6 @@ export function useTransactionsQuery() {
         trxError,
         refetch: mutate,
         addTransaction,
+        updateTrx,
     };
 }

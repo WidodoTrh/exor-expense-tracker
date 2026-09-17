@@ -62,115 +62,117 @@ function TransactionPage() {
     }, [ListPaymentType, cashflowTypes])
 
     return (
-        <Container maxWidth="md" sx={{justifyContent: 'center', marginY: 2}}>
-            <Typography variant="h4" fontWeight={700} sx={{mb: 2}}>
-                Add new transaction
-            </Typography>
-            <Divider />
-            <Box sx={{display: 'flex', flexDirection: 'column'}}>
-                <Stack spacing={2} sx={{ marginY: 2 }}>
-                    <TextField label="Description" value={form.description} onChange={handleChange('description')} fullWidth size="small" />
-                    <TextField
-                        size="small"
-                        label="Amount"
-                        value={form.amount}
-                        onChange={(e) => {
-                            const val = e.target.value;
-                            if (/^\d*\.?\d*$/.test(val)) {
-                                setForm((f) => ({ ...f, amount: val }));
-                            }
-                        }}
-                        fullWidth
-                        slotProps={{
-                            htmlInput: { inputMode: 'decimal' },
-                        }}
-                    />
-                    <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1}}>
-                        {quickAmounts.map((amt) => (
-                            <Chip
-                                key={amt}
-                                label={amt.toLocaleString('id-ID')}
-                                size="medium"
-                                clickable
-                                variant={form.amount === String(amt) ? 'filled' : 'outlined'}
-                                color={form.amount === String(amt) ? 'primary' : 'default'}
-                                onClick={() => setForm((f) => ({ ...f, amount: String(amt) }))}
-                            />
-                        ))}
-                    </Box>
-                    <Autocomplete
-                        size="small"
-                        options={ListCategory}
-                        getOptionLabel={(option) => option.name}
-                        value={ListCategory.find((c) => c.id === form.category_id) || null}
-                        onChange={(event, newValue) => {
-                            setForm((f) => ({ ...f, category_id: newValue?.id || '' }));
-                        }}
-                        isOptionEqualToValue={(option, value) => option.id === value.id}
-                        renderInput={(params) => (
-                            <TextField {...params} label="Category" fullWidth />
-                        )}
-                        slotProps={{
-                            listbox: { sx: { maxHeight: 250 } },
-                        }}
-                    />
-                    <Autocomplete
-                        size="small"
-                        options={ListPaymentType}
-                        getOptionLabel={(option) => option?.name}
-                        value={ListPaymentType.find((c) => c.id === form.payment_type_id) || null}
-                        onChange={(event, newValue) => {
-                            setForm((f) => ({ ...f, payment_type_id: newValue?.id || '' }));
-                        }}
-                        isOptionEqualToValue={(option, value) => option.id === value.id}
-                        renderInput={(params) => (
-                            <TextField {...params} label="Payment Type" fullWidth />
-                        )}
-                        slotProps={{
-                            listbox: { sx: { maxHeight: 250 } },
-                        }}
-                    />
+        <Container maxWidth="md" sx={{justifyContent: 'center'}}>
+            <Box sx={{ p: 3 }}>
+                <Typography variant="h4" fontWeight={700} sx={{mb: 2}}>
+                    Add new transaction
+                </Typography>
+                <Divider />
+                <Box sx={{display: 'flex', flexDirection: 'column'}}>
+                    <Stack spacing={2} sx={{ marginY: 2 }}>
+                        <TextField label="Description" value={form.description} onChange={handleChange('description')} fullWidth size="small" />
+                        <TextField
+                            size="small"
+                            label="Amount"
+                            value={form.amount}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (/^\d*\.?\d*$/.test(val)) {
+                                    setForm((f) => ({ ...f, amount: val }));
+                                }
+                            }}
+                            fullWidth
+                            slotProps={{
+                                htmlInput: { inputMode: 'decimal' },
+                            }}
+                        />
+                        <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1}}>
+                            {quickAmounts.map((amt) => (
+                                <Chip
+                                    key={amt}
+                                    label={amt.toLocaleString('id-ID')}
+                                    size="medium"
+                                    clickable
+                                    variant={form.amount === String(amt) ? 'filled' : 'outlined'}
+                                    color={form.amount === String(amt) ? 'primary' : 'default'}
+                                    onClick={() => setForm((f) => ({ ...f, amount: String(amt) }))}
+                                />
+                            ))}
+                        </Box>
+                        <Autocomplete
+                            size="small"
+                            options={ListCategory}
+                            getOptionLabel={(option) => option.name}
+                            value={ListCategory.find((c) => c.id === form.category_id) || null}
+                            onChange={(event, newValue) => {
+                                setForm((f) => ({ ...f, category_id: newValue?.id || '' }));
+                            }}
+                            isOptionEqualToValue={(option, value) => option.id === value.id}
+                            renderInput={(params) => (
+                                <TextField {...params} label="Category" fullWidth />
+                            )}
+                            slotProps={{
+                                listbox: { sx: { maxHeight: 250 } },
+                            }}
+                        />
+                        <Autocomplete
+                            size="small"
+                            options={ListPaymentType}
+                            getOptionLabel={(option) => option?.name}
+                            value={ListPaymentType.find((c) => c.id === form.payment_type_id) || null}
+                            onChange={(event, newValue) => {
+                                setForm((f) => ({ ...f, payment_type_id: newValue?.id || '' }));
+                            }}
+                            isOptionEqualToValue={(option, value) => option.id === value.id}
+                            renderInput={(params) => (
+                                <TextField {...params} label="Payment Type" fullWidth />
+                            )}
+                            slotProps={{
+                                listbox: { sx: { maxHeight: 250 } },
+                            }}
+                        />
 
-                    <Autocomplete
-                        size="small"
-                        options={cashflowTypes}
-                        getOptionLabel={(option) => option?.name}
-                        value={cashflowTypes.find((c) => c.id === form.cashflow_type_id) || null}
-                        onChange={(event, newValue) => {
-                            setForm((f) => ({ ...f, cashflow_type_id: newValue?.id || '' }));
-                        }}
-                        isOptionEqualToValue={(option, value) => option.id === value.id}
-                        renderInput={(params) => (
-                            <TextField {...params} label="Cashflow Type" fullWidth />
-                        )}
-                        slotProps={{
-                            listbox: { sx: { maxHeight: 250 } },
-                        }}
-                    />
+                        <Autocomplete
+                            size="small"
+                            options={cashflowTypes}
+                            getOptionLabel={(option) => option?.name}
+                            value={cashflowTypes.find((c) => c.id === form.cashflow_type_id) || null}
+                            onChange={(event, newValue) => {
+                                setForm((f) => ({ ...f, cashflow_type_id: newValue?.id || '' }));
+                            }}
+                            isOptionEqualToValue={(option, value) => option.id === value.id}
+                            renderInput={(params) => (
+                                <TextField {...params} label="Cashflow Type" fullWidth />
+                            )}
+                            slotProps={{
+                                listbox: { sx: { maxHeight: 250 } },
+                            }}
+                        />
 
-                    <DatePicker
-                        label="Transaction Date"
-                        value={form.transaction_date ? new Date(form.transaction_date) : null}
-                        onChange={handleDateChange}
-                        open={datePickerOpen}
-                        onOpen={() => setDatePickerOpen(true)}
-                        onClose={() => setDatePickerOpen(false)}
-                        slotProps={{
-                            textField: {
-                                size:"small",
-                                fullWidth: true,
-                                onClick: () => setDatePickerOpen(true),
-                                slotProps: {
-                                    readOnly: true
+                        <DatePicker
+                            label="Transaction Date"
+                            value={form.transaction_date ? new Date(form.transaction_date) : null}
+                            onChange={handleDateChange}
+                            open={datePickerOpen}
+                            onOpen={() => setDatePickerOpen(true)}
+                            onClose={() => setDatePickerOpen(false)}
+                            slotProps={{
+                                textField: {
+                                    size:"small",
+                                    fullWidth: true,
+                                    onClick: () => setDatePickerOpen(true),
+                                    slotProps: {
+                                        readOnly: true
+                                    },
                                 },
-                            },
-                        }}
-                    />
-                </Stack>
+                            }}
+                        />
+                    </Stack>
 
-                <Button variant="contained" onClick={handleSubmit} disabled={submitting} startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : 'Save'}>
-                    {/* {submitting ? <CircularProgress />  : 'Save'} */}
-                </Button>
+                    <Button variant="contained" onClick={handleSubmit} disabled={submitting} startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : 'Save'}>
+                        {/* {submitting ? <CircularProgress />  : 'Save'} */}
+                    </Button>
+                </Box>
             </Box>
         </Container>
     )
