@@ -215,7 +215,7 @@ export default function InvitePage() {
                         Add member
                     </Button>
                     <InviteMemberDialog open={memberDialog} onClose={() => setMemberDialog(false)} householdId={myProfile?.household_id} />
-                    <DataTable minTableWidth={0} loading={memberOnLoad} columns={dt_housholdMember} data={members} rowKey={(row) => row.user_id} defaultOrderBy="name" defaultOrder="asc" searchable searchPlaceholder="Search"/>
+                    <DataTable dense minTableWidth={0} loading={memberOnLoad} columns={dt_housholdMember} data={members} rowKey={(row) => row.user_id} defaultOrderBy="name" defaultOrder="asc" searchable searchPlaceholder="Search"/>
                 </Box>
             }
 
@@ -224,7 +224,7 @@ export default function InvitePage() {
                     <Button variant="contained" startIcon={<AddIcon />} onClick={() => setDialogOpen(true)}>
                         Add new category
                     </Button>
-                    <DataTable minTableWidth={0} loading={onCategoryLoad} columns={dt_categories} data={ListCategory} rowKey={(row) => row.id} defaultOrderBy="name" defaultOrder="asc" searchable searchPlaceholder="Search"/>
+                    <DataTable dense minTableWidth={0} loading={onCategoryLoad} columns={dt_categories} data={ListCategory} rowKey={(row) => row.id} defaultOrderBy="name" defaultOrder="asc" searchable searchPlaceholder="Search"/>
 
                     <Dialog 
                         open={dialogOpen} 
@@ -286,7 +286,7 @@ export default function InvitePage() {
                     <Button variant="contained" startIcon={<AddIcon />} onClick={() => setPTdialog(true)}>
                         Add new Payment Type
                     </Button>
-                    <DataTable minTableWidth={0} loading={onPaymenttypeLoad} columns={dt_paymentType} data={ListPaymentType} rowKey={(row) => row.id} defaultOrderBy="name" defaultOrder="asc" searchable searchPlaceholder="Search"/>
+                    <DataTable dense minTableWidth={0} loading={onPaymenttypeLoad} columns={dt_paymentType} data={ListPaymentType} rowKey={(row) => row.id} defaultOrderBy="name" defaultOrder="asc" searchable searchPlaceholder="Search"/>
 
                     <Dialog open={PTdialogOpen} onClose={handleClosePT} fullWidth maxWidth="sm" slots={{transition: GrowTransition}} slotProps={{transition: {timeout: 650, onEntered: () => inputPaymentTypeField.current?.focus()}}}>
                         <DialogTitle>Add Payment Type</DialogTitle>

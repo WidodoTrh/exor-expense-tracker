@@ -89,7 +89,7 @@ export function CustomThemeProvider({ children }) {
         }
       })
 
-      return responsiveFontSizes(baseTheme)
+      return responsiveFontSizes(baseTheme, {factor: 3})
     },
     [mode]
   )

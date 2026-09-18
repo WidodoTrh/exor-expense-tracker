@@ -73,7 +73,7 @@ export default function LoginPage() {
                 justifyContent: 'center',
                 bgcolor: 'background.default',
                 px: 1,
-                marginY:3
+                marginX: 2
             }}
         >
             <Paper

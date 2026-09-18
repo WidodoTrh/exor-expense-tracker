@@ -148,7 +148,7 @@ function Home() {
                     </Grid>
                 </Grid>
 
-                <Divider sx={{maringY: 2}} />
+                <Divider sx={{marginY: 2}} />
                 <Box sx={{ display:'flex', flexDirection:'row', bgcolor:'', gap:2, flexGrow: 1, alignItems: 'center'}}>
                     <DataTable title="Detail Transaction" dense loading={onTrxLoad} columns={dt_trx} data={trx} rowKey={(row) => row.id} defaultOrderBy="spend datetime" defaultOrder="desc" searchable searchPlaceholder="Search"/>
                 </Box>
@@ -169,10 +169,10 @@ function DailyTransactionTable() {
 
     const dt_daily = [
         { id: 'description', label: 'Transaction Title', noWrap: true, width: 180 },
-        { id: 'spend_by', label: 'Spend By', render: (row) => row?.profiles?.display_name ?? '-' },
-        { id: 'amount', label: 'Spend', render: (row) => global.formatRp(row?.amount) },
-        { id: 'category', label: 'Category', render: (row) => row?.categories?.name ?? '-' },
-        { id: 'payment_type', label: 'Payment Type', render: (row) => row?.payment_type?.name ?? '-' },
+        { id: 'spend_by', label: 'Spend By', render: (row) => row?.profiles?.display_name ?? '-', noWrap: true, width: 150},
+        { id: 'amount', label: 'Spend', render: (row) => global.formatRp(row?.amount), noWrap: true, width: 150 },
+        { id: 'category', label: 'Category', render: (row) => row?.categories?.name ?? '-' , noWrap: true, width: 150},
+        { id: 'payment_type', label: 'Payment Type', render: (row) => row?.payment_type?.name ?? '-', noWrap: true, width: 150 },
     ]
 
     return (
@@ -199,6 +199,7 @@ function DailyTransactionTable() {
             </Box>
 
             <DataTable
+                dense
                 title="Daily Transaction Detail"
                 columns={dt_daily}
                 data={dailyTrx}
