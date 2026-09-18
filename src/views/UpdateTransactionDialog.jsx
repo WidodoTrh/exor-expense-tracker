@@ -3,9 +3,11 @@ import { Autocomplete, Dialog, DialogTitle, DialogContent, DialogActions, TextFi
 import { GrowTransition } from '../component/TransitionEffect';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { useTransactionsQuery } from '../hooks/useTransactionsOpt';
+import { useSnackbar } from 'notistack'
 import global from '../appcore/global';
 
 export default function EditTransactionDialog({ open, onClose, transaction, categories = [], paymentTypes = [], cashflowTypes = [], onSave }) {
+    const { enqueueSnackbar } = useSnackbar()    
     const [form, setForm] = useState({
         description: '',
         amount: '',
@@ -44,13 +46,13 @@ export default function EditTransactionDialog({ open, onClose, transaction, cate
             await updateTrx(transaction.id, {
                 ...form,
                 amount: Number(form.amount),
-                transaction_date: form.transaction_date
-                    ? global.formatDateLocal(form.transaction_date)
-                    : null,
+                transaction_date: form.transaction_date? global.formatDateLocal(form.transaction_date) : null,
             });
             onClose();
+            enqueueSnackbar('Transaction saved successfuly', { variant: 'success', anchorOrigin: {vertical: 'top', horizontal: 'center'}});
         } catch (err) {
-            setError(err.message || 'Gagal menyimpan perubahan');
+            setError(err.message || 'Failed to update transaction');
+            enqueueSnackbar(error, {variant: 'error', anchorOrigin: {vertical: 'top', horizontal: 'center'}})
         } finally {
             setSaving(false);
         }
@@ -65,7 +67,7 @@ export default function EditTransactionDialog({ open, onClose, transaction, cate
             slots={{transition: GrowTransition}} 
                 slotProps={{
                     transition: {
-                        timeout: 650
+                        timeout: 200
                     }
                 }}
         >
@@ -131,7 +133,7 @@ export default function EditTransactionDialog({ open, onClose, transaction, cate
                                 size: "small",
                                 fullWidth: true,
                                 onClick: () => setDatepickerOpen(true),
-                                InputProps: {
+                                slotProps: {
                                     readOnly: true,
                                 },
                             },

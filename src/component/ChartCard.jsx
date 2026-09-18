@@ -110,7 +110,7 @@ export default function ChartCard({
   const axisTickStyle = { fill: theme.palette.text.secondary };
 
   return (
-    <Card>
+    <Card sx={{borderRadius: 4}}>
       <CardContent>
         {title && (
           <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>

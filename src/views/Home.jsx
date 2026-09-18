@@ -1,10 +1,12 @@
 import { Button, useTheme, useMediaQuery, Box, Grid, Container, FormControl, Card, CardContent, Typography, MenuItem, Select, InputLabel, Divider } from "@mui/material";
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useTransactionsQuery } from "../hooks/useTransactionsOpt";
 import { useSummaryQuery } from "../hooks/useSummaryOpt";
 import { useCategoriesQuery, useCashflowTypesQuery, usePaymentTypesQuery } from "../hooks/useMasterOpt";
 import { GrowTransition } from '../component/TransitionEffect';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 
+import global from "../appcore/global";
 import EditTransactionDialog from "./UpdateTransactionDialog";
 import DataTable from '../component/BaseDataTable'
 import ChartCard from "../component/ChartCard";
@@ -26,13 +28,12 @@ const MONTHS = [
 ];
 
 function Home() {
-    const formatRupiah = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num || 0);
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('xs'))
     const now = new Date();
     const [month, setMonth] = useState(now.getMonth() + 1);
     const [year, setYear] = useState(now.getFullYear());
-    const { trx, trxError, onTrxLoad } = useTransactionsQuery();
+    const { trx, trxError, onTrxLoad, revalidating } = useTransactionsQuery();
     const { summary, dailySummary, categorySummary, summaryLoading, summaryError } = useSummaryQuery({ month, year });
 
     const [editOpen, setEditOpen] = useState(false);
@@ -43,10 +44,10 @@ function Home() {
 
     const dt_trx = [
         {id: 'description', label: 'Transaction Title', noWrap: true, width: 180},
-        {id: 'user_id', label: 'Spend By', render: (row) => row.profiles?.display_name ?? '-', noWrap: true, width: 180},
-        {id: 'amount', label: 'Spend', render: (row) => formatRupiah(row?.amount), noWrap: true, width: 180},
-        {id: 'categories', label: 'Category', render: (row) => row.categories.name, noWrap: true, width: 180},
-        {id: 'payment_type', label: 'Payment Type', render: (row) => row.payment_type.name ?? '-', noWrap: true, width: 180},
+        {id: 'user_id', label: 'Spend By', render: (row) => row?.profiles?.display_name ?? '-', noWrap: true, width: 180},
+        {id: 'amount', label: 'Spend', render: (row) => global.formatRp(row?.amount), noWrap: true, width: 180},
+        {id: 'categories', label: 'Category', render: (row) => row?.categories?.name, noWrap: true, width: 180 , getValue: (row) => row?.categories?.name},
+        {id: 'payment_type', label: 'Payment Type', render: (row) => row?.payment_type?.name ?? '-', noWrap: true, width: 180},
         {id: 'transaction_date', label: 'Date', noWrap: true, width: 180},
         {
             id: 'action',
@@ -60,18 +61,9 @@ function Home() {
         }
     ]
 
-    const handleDetail = (v) => {
-        console.log('detail ', v)
-    }
-
-    const handleSaveUpdate = () => {
-        console.log('save')
-    }
-
-    
     return (
         <Container maxWidth={false} sx={{display: 'flex', flexDirection: 'column', flexGrow: 1}}>
-            <EditTransactionDialog open={editOpen} onClose={() => setEditOpen(false)} categories={ListCategory} paymentTypes={ListPaymentType} cashflowTypes={cashflowTypes} transaction={selectedTx} onSave={handleSaveUpdate}/>
+            <EditTransactionDialog open={editOpen} onClose={() => setEditOpen(false)} categories={ListCategory} paymentTypes={ListPaymentType} cashflowTypes={cashflowTypes} transaction={selectedTx} />
             <Box sx={{ p: 3 }}>
                 <Typography variant="h4" sx={{mb: 2}}>
                     Dashboard
@@ -99,25 +91,25 @@ function Home() {
                 <Grid container spacing={3}>
                     {/* Card total */}
                     <Grid size={{ xs: 12, md: 6 }}>
-                        <Card>
+                        <Card sx={{borderRadius: 4}}>
                             <CardContent>
                             <Typography variant="body2" color="text.secondary">
                                 Total Income — {MONTHS[month - 1]} {year}
                             </Typography>
                             <Typography variant="h4" fontWeight={700} sx={{ mt: 1 }}>
-                                {summaryLoading ? '...' : formatRupiah(summary?.total_income)}
+                                {summaryLoading ? '...' : global.formatRp(summary?.total_income)}
                             </Typography>
                             </CardContent>
                         </Card>
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
-                        <Card>
+                        <Card sx={{borderRadius: 4}}>
                             <CardContent>
                             <Typography variant="body2" color="text.secondary">
                                 Total Expense — {MONTHS[month - 1]} {year}
                             </Typography>
                             <Typography variant="h4" fontWeight={700} sx={{ mt: 1 }}>
-                                {summaryLoading ? '...' : formatRupiah(summary?.total_expense)}
+                                {summaryLoading ? '...' : global.formatRp(summary?.total_expense)}
                             </Typography>
                             </CardContent>
                         </Card>
@@ -136,6 +128,9 @@ function Home() {
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 6 }}>
+                        <DailyTransactionTable />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 12 }}>
                         <ChartCard
                             height={400}
                             type="bar"
@@ -153,15 +148,67 @@ function Home() {
                         />
                     </Grid>
                 </Grid>
-                <Typography variant="h4" sx={{marginY: 2}}>
-                    Detail Transactions
-                </Typography>
+
                 <Divider sx={{maringY: 2}} />
                 <Box sx={{ display:'flex', flexDirection:'row', bgcolor:'', gap:2, flexGrow: 1, alignItems: 'center'}}>
-                    <DataTable dense={isMobile} loading={onTrxLoad} columns={dt_trx} data={trx} rowKey={(row) => row.id} defaultOrderBy="spend datetime" defaultOrder="desc" searchable searchPlaceholder="Search"/>
+                    <DataTable title="Detail Transaction" dense loading={onTrxLoad} columns={dt_trx} data={trx} rowKey={(row) => row.id} defaultOrderBy="spend datetime" defaultOrder="desc" searchable searchPlaceholder="Search"/>
                 </Box>
             </Box>
         </Container>
+    )
+}
+
+function DailyTransactionTable() {
+    const [selectedDate, setSelectedDate] = useState(new Date())
+    const { trx, trxError, onTrxLoad } = useTransactionsQuery()
+    const [ dailyDatepickerOpen, setdailyDatepickerOpen ] = useState(false)
+
+    const dailyTrx = useMemo(() => {
+        const targetDate = global.formatDateLocal(selectedDate)
+        return trx.filter((row) => row.transaction_date === targetDate)
+    }, [trx, selectedDate])
+
+    const dt_daily = [
+        { id: 'description', label: 'Transaction Title', noWrap: true, width: 180 },
+        { id: 'spend_by', label: 'Spend By', render: (row) => row?.profiles?.display_name ?? '-' },
+        { id: 'amount', label: 'Spend', render: (row) => global.formatRp(row?.amount) },
+        { id: 'category', label: 'Category', render: (row) => row?.categories?.name ?? '-' },
+        { id: 'payment_type', label: 'Payment Type', render: (row) => row?.payment_type?.name ?? '-' },
+    ]
+
+    return (
+        <Box>
+            <Box sx={{ mb: 2 }}>
+                <DatePicker
+                    label="Transaction Date"
+                    value={selectedDate}
+                    onChange={(newValue) => newValue && setSelectedDate(newValue)}
+                    open={dailyDatepickerOpen}
+                    onOpen={() => setdailyDatepickerOpen(true)}
+                    onClose={() => setdailyDatepickerOpen(false)}
+                    slotProps={{
+                        textField: {
+                            size:"small",
+                            fullWidth: true,
+                            onClick: () => setdailyDatepickerOpen(true),
+                            slotProps: {
+                                readOnly: true
+                            },
+                        },
+                    }}
+                />
+            </Box>
+
+            <DataTable
+                title="Daily Transaction Detail"
+                columns={dt_daily}
+                data={dailyTrx}
+                rowKey={(row) => row.id}
+                loading={onTrxLoad}
+                error={trxError}
+                emptyMessage={`Tidak ada transaksi pada ${global.formatDateLocal(selectedDate)}`}
+            />
+        </Box>
     )
 }
 

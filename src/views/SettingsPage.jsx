@@ -4,7 +4,7 @@ import { useSnackbar } from 'notistack';
 import { useCategoriesQuery, useCashflowTypesQuery, usePaymentTypesQuery } from '../hooks/useMasterOpt';
 import { SlideDownTransition, GrowTransition, ZoomTransition } from '../component/TransitionEffect';
 import { useConfirmDialog } from "../component/BaseConfirmationDialog"
-import { useInviteMember, useHouseholdMembersQuery } from '../hooks/useHouseholdOpt';
+import { useHouseholdMembersQuery } from '../hooks/useHouseholdOpt';
 import { useMyProfileQuery } from '../hooks/useMyProfilesOpt';
 
 import AddIcon from '@mui/icons-material/Add';
@@ -19,7 +19,7 @@ export default function InvitePage() {
     const { ListCategory, addCategory, dropCategory, onCategoryLoad } = useCategoriesQuery();
     const { cashflowTypes } = useCashflowTypesQuery();
     const { ListPaymentType, onPaymenttypeLoad, dropPaymentType, addPaymentType } = usePaymentTypesQuery()
-    const { members, memberOnLoad } = useHouseholdMembersQuery()
+    const { members, memberOnLoad, dropMember } = useHouseholdMembersQuery()
     const {confirm, ConfirmDialog} = useConfirmDialog()
 
     const inputCategoryField = useRef(null)
@@ -109,7 +109,7 @@ export default function InvitePage() {
             render: (row) => {
                 return (
                     <Tooltip title='Remove Member' placement="right">
-                        <Button startIcon={<GroupRemoveIcon />} color="error" onClick={() => getConfirmDialog(row, 'payment_type')} disabled={deleting} />
+                        <Button startIcon={<GroupRemoveIcon />} color="error" onClick={() => getConfirmDialog(row, 'member_remove')} disabled={deleting} />
                     </Tooltip> 
                 )
             },
@@ -160,10 +160,14 @@ export default function InvitePage() {
                 case 'category':
                     await dropCategory(v.id)
                     break;
+                case 'member_remove':
+                    console.log('oasdsa',v)
+                    await dropMember({ user_id: v.user_id, household_id: myProfile?.household_id })
+                    break;
                 default:
                     throw new Error(`Unknown delete type : ${c}`)
             }
-            enqueueSnackbar(`${v.name} successfuly deleted`, { variant: 'success' });
+            enqueueSnackbar(`data successfuly deleted`, { variant: 'success' });
         } catch (error) {
             const message = error?.response?.data?.error || error.message;
             enqueueSnackbar(message, { variant: 'error' });
@@ -174,7 +178,7 @@ export default function InvitePage() {
 
     const getConfirmDialog = async (v,c) => {
         const currVal = v.name
-        const message = `${currVal} - Are you sure you want to delete this category ?`
+        const message = `${currVal} - Are you sure ?`
         const y = await confirm('Delete', message)
         if (y) {
             drop_typeof(v,c)
@@ -313,7 +317,7 @@ export default function InvitePage() {
 function InviteMemberDialog({ open, onClose, householdId }) {
     const [email, setEmail] = useState('')
     const [submitting, setSubmitting] = useState(false)
-    const { inviteMember } = useInviteMember()
+    const { inviteMember } = useHouseholdMembersQuery()
     const { enqueueSnackbar } = useSnackbar()
 
     const handleSubmit = async () => {

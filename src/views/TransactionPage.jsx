@@ -1,5 +1,5 @@
 import { Chip, Container, Box, Button, TextField, MenuItem, Stack, CircularProgress, Typography, Divider, Autocomplete } from "@mui/material";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useTransactionsQuery } from "../hooks/useTransactionsOpt";
 import { useSnackbar } from 'notistack'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
@@ -38,7 +38,7 @@ function TransactionPage() {
             setForm({ description: '', amount: '', transaction_date: global.formatDateLocal(new Date())});
             enqueueSnackbar('Transaction saved successfuly', { variant: 'success', anchorOrigin: {vertical: 'top', horizontal: 'center'}});
         } catch (err) {
-            console.error('Failed to add transaction:', err);
+            // console.error('Failed to add transaction:', err);
             const errMsg = err?.response?.data?.error || err?.response?.data?.detail || err.message || 'Gagal menyimpan transaksi';
             enqueueSnackbar(errMsg, {variant: 'error', anchorOrigin: {vertical: 'top', horizontal: 'center'}})
         } finally {
@@ -61,6 +61,22 @@ function TransactionPage() {
         }
     }, [ListPaymentType, cashflowTypes])
 
+    const fieldRefs = useRef([])
+    const focusNextField = (index) => {
+        const nextField = fieldRefs.current[index + 1]
+        if (nextField) {
+            nextField.focus()
+        }
+    }
+
+    const handleKeyDown = (index) => (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault() // biar gak submit form kepencet gak sengaja di field tengah
+            focusNextField(index)
+        }
+    }
+    
+
     return (
         <Container maxWidth="md" sx={{justifyContent: 'center'}}>
             <Box sx={{ p: 3 }}>
@@ -70,7 +86,7 @@ function TransactionPage() {
                 <Divider />
                 <Box sx={{display: 'flex', flexDirection: 'column'}}>
                     <Stack spacing={2} sx={{ marginY: 2 }}>
-                        <TextField label="Description" value={form.description} onChange={handleChange('description')} fullWidth size="small" />
+                        <TextField label="Description" value={form.description} onChange={handleChange('description')} fullWidth size="small" onKeyDown={handleKeyDown(0)} />
                         <TextField
                             size="small"
                             label="Amount"
@@ -85,6 +101,7 @@ function TransactionPage() {
                             slotProps={{
                                 htmlInput: { inputMode: 'decimal' },
                             }}
+                            onKeyDown={handleKeyDown(1)}
                         />
                         <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1}}>
                             {quickAmounts.map((amt) => (

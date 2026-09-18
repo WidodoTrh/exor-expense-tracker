@@ -3,12 +3,27 @@ import { supabaseFromRequest } from '../_lib/_supabaseFromRequest.js';
 export default async function handler(req, res) {
     const supabase = supabaseFromRequest(req);
 
+    if (req.method === 'DELETE') {
+        const { user_id, household_id } = req.body;
+        if (!user_id || !household_id) {
+            return res.status(400).json({ error: 'User id and Household id must not be empty' });
+        }
+
+        const { error } = await supabase
+            .from('household_members')
+            .delete()
+            .eq('user_id', user_id)
+            .eq('household_id', household_id);
+
+        if (error) return res.status(400).json({ error: error.message });
+        return res.status(200).json({ success: true });
+    }
+
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
     const { email, household_id } = req.body;
-    console.log(' payload ', email, household_id)
     if (!email || !household_id) {
         return res.status(400).json({ error: 'Email and household_id are required' });
     }

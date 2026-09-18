@@ -261,7 +261,7 @@ export default function DataTable({
                     }}
                 >
                     {title && (
-                        <Typography variant="h6" component="div">
+                        <Typography sx={{mx: 1}} variant="h6" component="div">
                             {title}
                         </Typography>
                     )}

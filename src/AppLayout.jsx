@@ -15,7 +15,7 @@ const MINI_WIDTH = 72;
 export default function AppLayout() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(true);
     const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
     return (
