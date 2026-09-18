@@ -11,7 +11,7 @@ import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import SettingsIcon from '@mui/icons-material/Settings';
 import authProfiles from '../store/auth';
 import PersonIcon from '@mui/icons-material/Person';
-import exrLogo from '../assets/exr-logo.png'
+import useIsMobile from '../hooks/useIsMobile';
 
 const navItems = [
   { label: 'Dashboard', path: '/home', menuIcon: <HomeIcon fontSize='small' />  },
@@ -25,7 +25,7 @@ function Sidebar({ open, width, onClose }) {
     const { myProfile } = useMyProfileQuery()
     const logoutBtn = authProfiles((s) => s.act_LOGOUT)
     const theme = useTheme()
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+    const isMobile = useIsMobile()
     const location = useLocation();
     const { toggleColorMode } = useColorMode()
     const currentWidth = open ? width : MINI_WIDTH;

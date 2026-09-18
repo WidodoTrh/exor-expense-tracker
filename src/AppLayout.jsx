@@ -1,11 +1,14 @@
 import { Outlet } from 'react-router-dom';
-import { Box, Toolbar, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Toolbar } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { useState } from 'react';
+
 import Navbar from './component/Navbar';
 import Sidebar from './component/Sidebar';
 import Footer from './component/Footer';
-import { useState } from 'react';
+import MobileBottomNav from './component/BottomBar';
+import useIsMobile from './hooks/useIsMobile';
 
 
 
@@ -13,8 +16,7 @@ const DRAWER_WIDTH = 340;
 const MINI_WIDTH = 72;
 
 export default function AppLayout() {
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isMobile = useIsMobile()
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
@@ -33,6 +35,7 @@ export default function AppLayout() {
                             marginLeft: isMobile
                                 ? 0
                                 : `${sidebarOpen ? DRAWER_WIDTH : MINI_WIDTH}px`,
+                            paddingBottom: isMobile ? '56px' : 0,
                             transition: (theme) =>
                                 theme.transitions.create('margin-left', {
                                     easing: theme.transitions.easing.sharp,
@@ -45,11 +48,16 @@ export default function AppLayout() {
                         </Box>
                         <Footer />
                     </Box>
-                    <Sidebar
-                        open={sidebarOpen}
-                        width={DRAWER_WIDTH}
-                        onClose={() => setSidebarOpen(false)}
-                    />
+                    {isMobile &&
+                        <MobileBottomNav />
+                    }
+                    {!isMobile &&    
+                        <Sidebar
+                            open={sidebarOpen}
+                            width={DRAWER_WIDTH}
+                            onClose={() => setSidebarOpen(false)}
+                        />
+                    }
                 </Box>
             </Box>
         </LocalizationProvider>

@@ -1,4 +1,4 @@
-import { Button, useTheme, useMediaQuery, Box, Grid, Container, FormControl, Card, CardContent, Typography, MenuItem, Select, InputLabel, Divider } from "@mui/material";
+import { Button, useTheme, Box, Grid, Container, FormControl, Card, CardContent, Typography, MenuItem, Select, InputLabel, Divider } from "@mui/material";
 import { useState, useEffect, useMemo } from 'react'
 import { useTransactionsQuery } from "../hooks/useTransactionsOpt";
 import { useSummaryQuery } from "../hooks/useSummaryOpt";
@@ -29,7 +29,6 @@ const MONTHS = [
 
 function Home() {
     const theme = useTheme()
-    const isMobile = useMediaQuery(theme.breakpoints.down('xs'))
     const now = new Date();
     const [month, setMonth] = useState(now.getMonth() + 1);
     const [year, setYear] = useState(now.getFullYear());

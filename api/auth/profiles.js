@@ -22,7 +22,24 @@ export default async function handler(req, res) {
 
     if (membershipError) return res.status(400).json({ error: membershipError.message });
 
+    let householdName = null;
+    if (membership?.household_id) {
+        const { data: household, error: householdError } = await supabase
+            .from('households')
+            .select('name')
+            .eq('id', membership.household_id)
+            .maybeSingle();
+
+        if (householdError) return res.status(400).json({ error: householdError.message });
+        householdName = household?.name ?? null;
+    }
+
     return res.status(200).json({
-        profiles: { ...profile, household_id: membership?.household_id ?? null }
+        profiles: {
+            ...profile,
+            email: user.email,
+            household_id: membership?.household_id ?? null,
+            household_name: householdName,
+        }
     });
 }

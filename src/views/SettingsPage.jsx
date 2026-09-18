@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Chip, useTheme, useMediaQuery, Tooltip, Autocomplete, Box, Card, CardContent, Typography, TextField, Button, MenuItem, Stack, Container, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
+import { Chip, Tooltip, Autocomplete, Box, Card, CardContent, Typography, TextField, Button, MenuItem, Stack, Container, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import { useCategoriesQuery, useCashflowTypesQuery, usePaymentTypesQuery } from '../hooks/useMasterOpt';
 import { SlideDownTransition, GrowTransition, ZoomTransition } from '../component/TransitionEffect';
@@ -11,10 +11,10 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DataTable from '../component/BaseDataTable'
 import GroupRemoveIcon from '@mui/icons-material/GroupRemove';
+import useIsMobile from '../hooks/useIsMobile';
 
 export default function InvitePage() {
-    const theme = useTheme()
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+    const isMobile = useIsMobile()
     const { myProfile } = useMyProfileQuery()
     const { ListCategory, addCategory, dropCategory, onCategoryLoad } = useCategoriesQuery();
     const { cashflowTypes } = useCashflowTypesQuery();

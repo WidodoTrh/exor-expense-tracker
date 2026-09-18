@@ -9,6 +9,7 @@ import PrivacyPolicyPage from "../views/PrivacyPolicyPage";
 import TermsOfServicePage from "../views/TermsOfServicePage";
 import ForgotPasswordPage from "../views/ForgotPasswordPage";
 import ResetPasswordPage from "../views/ResetPasswordPage";
+import Profile from "../component/ProfilesPage";
 
 import { ProtectedRoute } from './ProtectedRoute';
 import { PublicOnlyRoute } from "./PublicOnlyRoute";
@@ -51,6 +52,7 @@ export const routes = [
       { path: "/home", title: "Home", element: <Home /> },
       { path: "/trx", title: "Transaction", element: <TransactionPage /> },
       { path: "/settings", title: "Settings", element: <InvitePage /> },
+      { path: "/profile", title: "Profile", element: <Profile /> },
     ],
   },
 ];

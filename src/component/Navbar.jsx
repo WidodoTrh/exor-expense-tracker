@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react'
 import { AppBar, Toolbar, Typography, Button, IconButton, Box, Drawer, List, ListItem, ListItemButton, ListItemText, useMediaQuery, useTheme, Avatar, Menu, Divider, MenuItem, ListItemIcon } from '@mui/material'
+import { Link, useLocation } from 'react-router-dom'
+import { useColorMode } from '../context/ThemeContext'
+import { useMyProfileQuery } from '../hooks/useMyProfilesOpt';
+
+
 import MenuIcon from '@mui/icons-material/Menu'
 import AppsIcon from '@mui/icons-material/Apps';
 import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
-import { Link, useLocation } from 'react-router-dom'
-import { useColorMode } from '../context/ThemeContext'
-import authProfiles from '../store/auth';
 import PersonIcon from '@mui/icons-material/Person'
-
-import { useMyProfileQuery } from '../hooks/useMyProfilesOpt';
+import authProfiles from '../store/auth';
+import useIsMobile from '../hooks/useIsMobile';
 
 const navItems = [
   { label: 'Home', path: '/home' },
@@ -20,7 +22,7 @@ function Navbar({onToggleSidebar, sidebarOpen}) {
   const { myProfile } = useMyProfileQuery()
   const logoutBtn = authProfiles((s) => s.act_LOGOUT)
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const isMobile = useIsMobile()
   const { toggleColorMode } = useColorMode()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const location = useLocation()
@@ -42,17 +44,6 @@ function Navbar({onToggleSidebar, sidebarOpen}) {
     <>
       <AppBar position="fixed" color="default" elevation={1}>
         <Toolbar>
-          {isMobile && (
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={onToggleSidebar}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-          )}
-
           <Typography variant="h6" component={Link} to="/" sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 700 }}>
             {logoText}
           </Typography>
