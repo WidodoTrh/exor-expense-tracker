@@ -1,10 +1,11 @@
+import { useState } from 'react';
 import useSWR from 'swr';
 import { $axInstance } from '../store/api';
 import authProfiles from '../store/auth';
 
 export function useTransactionsQuery() {
-    const { state_AUTH_PROFILE } = authProfiles();
-    const userId = state_AUTH_PROFILE?.id;
+    const userId = authProfiles((s) => s.state_AUTH_PROFILE?.id)
+    const [ curSelectedTrx, setCurSelectedTrx ] = useState([])
 
     const fetcher = () =>
         $axInstance
@@ -26,6 +27,21 @@ export function useTransactionsQuery() {
         mutate()
     }
 
+    const bulkUpdate = async (changes) => {
+        if (curSelectedTrx.length === 0) throw new Error('Select at least one transaction');
+        try {
+            const res = await $axInstance.patch('/sheets/bulk', {
+                ids: curSelectedTrx,
+                changes,
+            });
+            setCurSelectedTrx([]);
+            await mutate();
+            return res.data;
+        } catch (err) {
+            throw new Error(err?.response?.data?.error || err?.message || 'Request failed');
+        }
+    };
+
     return {
         trx: data ?? [],
         onTrxLoad: isLoading,
@@ -34,5 +50,8 @@ export function useTransactionsQuery() {
         refetch: mutate,
         addTransaction,
         updateTrx,
+        curSelectedTrx,
+        setCurSelectedTrx,
+        bulkUpdate,
     };
 }

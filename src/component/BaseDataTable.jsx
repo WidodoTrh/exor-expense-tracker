@@ -1,7 +1,38 @@
 import { useState, useMemo } from 'react'
-import { useMediaQuery, useTheme, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, TableSortLabel, Paper, Checkbox, Skeleton, Box, Typography, Toolbar, Alert, TextField, InputAdornment, IconButton } from '@mui/material'
+import { useMediaQuery, useTheme, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableFooter, TablePagination, TableSortLabel, Paper, Checkbox, Skeleton, Box, Typography, Toolbar, Alert, TextField, InputAdornment, IconButton } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
+
+// ---------- grand total helper ----------
+// col.total bisa berupa: 'sum' | 'avg' | 'count' | 'min' | 'max' | (rows) => any
+// Nilai yang dijumlahkan diambil dari: col.getTotalValue -> col.getValue -> row[col.id]
+// (sengaja TIDAK pakai col.render, karena render biasanya menghasilkan teks/JSX hasil format)
+function computeTotal(col, rows) {
+    const t = col.total
+    if (!t) return undefined
+    if (typeof t === 'function') return t(rows)
+    if (t === 'count') return rows.length
+
+    const getVal = col.getTotalValue ?? col.getValue ?? ((row) => row?.[col.id])
+    const nums = rows
+        .map(getVal)
+        .filter((v) => v != null && v !== '')
+        .map(Number)
+        .filter(Number.isFinite)
+
+    switch (t) {
+        case 'sum':
+            return nums.reduce((acc, n) => acc + n, 0)
+        case 'avg':
+            return nums.length ? nums.reduce((acc, n) => acc + n, 0) / nums.length : 0
+        case 'min':
+            return nums.length ? Math.min(...nums) : 0
+        case 'max':
+            return nums.length ? Math.max(...nums) : 0
+        default:
+            return undefined
+    }
+}
 
 export default function DataTable({
     columns = [],
@@ -48,6 +79,15 @@ export default function DataTable({
     error = null,
     emptyMessage = 'No data available',
     emptyIcon = null,
+
+    // grand total
+    // Aktifin per kolom lewat `total` di definisi kolom, contoh:
+    //   { id: 'amount', label: 'Amount', total: 'sum', formatTotal: formatRupiah }
+    showTotal = false,
+    totalLabel = 'Grand total',
+    filteredTotalLabel = 'Total (filtered)', // dipakai saat search lagi aktif
+    totals, // khusus serverSide: object { [columnId]: value } dari backend (sudah kena filter search)
+    stickyTotal = false, // baris total nempel di bawah area tabel (berguna kalau pakai maxHeight)
 
     // toolbar
     title,
@@ -148,6 +188,30 @@ export default function DataTable({
         return sortedData.slice(start, start + rowsPerPage)
     }, [sortedData, page, rowsPerPage, serverSide])
 
+    // ---------- grand total logic ----------
+    // Dihitung dari filteredData (SEMUA baris yang lolos search, bukan cuma halaman yang tampil),
+    // jadi otomatis ikut berubah tiap search berubah, dan nggak terpengaruh pagination/sorting.
+    // Kalau serverSide, nilainya dikirim parent lewat prop `totals`.
+    const totalValues = useMemo(() => {
+        if (!showTotal) return {}
+        if (serverSide) return totals ?? {}
+        const result = {}
+        columns.forEach((col) => {
+            if (col.total) result[col.id] = computeTotal(col, filteredData)
+        })
+        return result
+    }, [showTotal, serverSide, totals, columns, filteredData])
+
+    const firstTotalIdx = columns.findIndex((col) => col.total)
+    const isSearching = searchable && (serverSide ? !!controlledSearchValue?.trim() : !!localSearchTerm.trim())
+
+    const renderTotalValue = (col) => {
+        const raw = totalValues[col.id]
+        if (raw === undefined || raw === null) return '—'
+        if (col.formatTotal) return col.formatTotal(raw)
+        return typeof raw === 'number' ? raw.toLocaleString() : raw
+    }
+
     // ---------- handlers ----------
     const handleRequestSort = (columnId) => {
         const isAsc = orderBy === columnId && order === 'asc'
@@ -244,6 +308,21 @@ export default function DataTable({
     const colSpanTotal = columns.length + (selectable ? 1 : 0)
     const effectiveRowCount = serverSide ? totalCount : sortedData.length
     const showToolbar = !!(title || toolbarActions || searchable)
+
+    // baris total: cuma tampil kalau ada kolom yang punya `total`, dan ada data (atau lagi loading)
+    const showTotalRow = showTotal && firstTotalIdx !== -1 && (loading || effectiveRowCount > 0)
+    // label ditaruh di sel-sel sebelum kolom total pertama (termasuk kolom checkbox kalau selectable)
+    const totalLabelSpan = firstTotalIdx + (selectable ? 1 : 0)
+    const totalLabelText = isSearching ? filteredTotalLabel : totalLabel
+
+    const totalCellSx = {
+        typography: 'body2',
+        fontWeight: 700,
+        color: 'text.primary',
+        bgcolor: 'background.paper',
+        borderTop: (t) => `2px solid ${t.palette.divider}`,
+        ...(stickyTotal ? { position: 'sticky', bottom: 0, zIndex: 2 } : {}),
+    }
 
     return (
         <Paper variant="outlined" sx={{ width: '100%', my: 2 }}>
@@ -438,6 +517,33 @@ export default function DataTable({
                             })
                         )}
                     </TableBody>
+
+                    {showTotalRow && (
+                        <TableFooter>
+                            <TableRow>
+                                {totalLabelSpan > 0 && (
+                                    <TableCell colSpan={totalLabelSpan} sx={totalCellSx}>
+                                        {totalLabelText}
+                                    </TableCell>
+                                )}
+                                {columns.slice(firstTotalIdx).map((col, i) => (
+                                    <TableCell key={col.id} align={col.align || 'left'} sx={totalCellSx}>
+                                        {/* kalau kolom pertama sendiri punya total, label ditaruh di atas nilainya */}
+                                        {i === 0 && totalLabelSpan === 0 && (
+                                            <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                                                {totalLabelText}
+                                            </Typography>
+                                        )}
+                                        {col.total
+                                            ? loading
+                                                ? <Skeleton variant="text" />
+                                                : renderTotalValue(col)
+                                            : null}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        </TableFooter>
+                    )}
                 </Table>
             </TableContainer>
             <TablePagination

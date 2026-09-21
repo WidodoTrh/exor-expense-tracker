@@ -1,4 +1,4 @@
-import { Chip, Container, Box, Button, TextField, MenuItem, Stack, CircularProgress, Typography, Divider, Autocomplete } from "@mui/material";
+import { Paper, Chip, Container, Box, Button, TextField, MenuItem, Stack, CircularProgress, Typography, Divider, Autocomplete } from "@mui/material";
 import { useEffect, useState, useRef } from 'react';
 import { useTransactionsQuery } from "../hooks/useTransactionsOpt";
 import { useSnackbar } from 'notistack'
@@ -81,7 +81,7 @@ function TransactionPage() {
 
     return (
         <Container maxWidth="md" sx={{justifyContent: 'center'}}>
-            <Box sx={{ p: 3 }}>
+            <Paper variant="outlined" sx={{m: 3, p: 3}}>
                 <Typography variant="h4" fontWeight={700} sx={{mb: 2}}>
                     Add new transaction
                 </Typography>
@@ -202,7 +202,7 @@ function TransactionPage() {
                         {/* {submitting ? <CircularProgress />  : 'Save'} */}
                     </Button>
                 </Box>
-            </Box>
+            </Paper>
         </Container>
     )
 }

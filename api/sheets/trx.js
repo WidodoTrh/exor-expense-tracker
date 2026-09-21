@@ -68,10 +68,26 @@ export default async function handler(req, res) {
             .from('household_members')
             .select('household_id')
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
 
-        if (membershipError) return res.status(400).json({ error: membershipError.message });
+        if (membershipError) return res.status(500).json({ error: 'Failed to verify household' });
+        if (!membership) return res.status(403).json({ error: 'You are not a member of any household' });
 
+        // 1. Transaksinya ada (dan keliatan oleh user ini)?
+        const { data: existing, error: existingError } = await supabase
+            .from('transactions')
+            .select('id, household_id, user_id')
+            .eq('id', id)
+            .maybeSingle();
+
+        if (existingError) return res.status(500).json({ error: 'Failed to load transaction' });
+        if (!existing) return res.status(404).json({ error: 'Transaction not found' });
+
+        if (existing.user_id !== user.id) {
+            return res.status(403).json({ error: 'You can only edit transactions you created' });
+        }
+
+        // 3. Update. RLS tetep jadi penjaga terakhir di database.
         const { data, error } = await supabase
             .from('transactions')
             .update({
@@ -83,11 +99,13 @@ export default async function handler(req, res) {
                 transaction_date,
             })
             .eq('id', id)
-            .eq('household_id', membership.household_id) // cuma bisa edit punya household sendiri
             .select();
 
         if (error) return res.status(400).json({ error: error.message });
-        if (!data || data.length === 0) return res.status(404).json({ error: 'Transaction not found' });
+        if (!data || data.length === 0) {
+            // kehapus di antara cek dan update, atau policy lebih ketat dari cek di atas
+            return res.status(404).json({ error: 'Transaction not found or not editable' });
+        }
 
         return res.status(200).json({ message: 'success', transaction: data[0] });
     }

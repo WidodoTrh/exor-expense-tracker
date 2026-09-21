@@ -1,5 +1,20 @@
 export const CHANGELOG = [
     {
+        version: '0.7.1',
+        date: '2026-09-21',
+        title: 'Bulk Update Management',
+        changes: [
+            {
+                type: 'added',
+                text: 'Addition of a bulk update feature that allows updating only three key fields: category, payment type, and cash flow type.',
+            },
+            {
+                type: 'improved',
+                text: 'Displaying a grand total for the Amount column in the detail DataTable.',
+            }
+        ],
+    },
+    {
         version: '0.6.0',
         date: '2026-09-21',
         title: 'Session management',

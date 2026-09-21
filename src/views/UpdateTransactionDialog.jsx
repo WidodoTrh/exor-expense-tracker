@@ -51,7 +51,7 @@ export default function EditTransactionDialog({ open, onClose, transaction, cate
             onClose();
             enqueueSnackbar('Transaction saved successfuly', { variant: 'success', anchorOrigin: {vertical: 'top', horizontal: 'center'}});
         } catch (err) {
-            setError(err.message || 'Failed to update transaction');
+            setError(err.message || err.error || 'Failed to update transaction');
             enqueueSnackbar(error, {variant: 'error', anchorOrigin: {vertical: 'top', horizontal: 'center'}})
         } finally {
             setSaving(false);

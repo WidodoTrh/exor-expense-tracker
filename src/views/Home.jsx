@@ -3,9 +3,9 @@ import { useState, useEffect, useMemo } from 'react'
 import { useTransactionsQuery } from "../hooks/useTransactionsOpt";
 import { useSummaryQuery } from "../hooks/useSummaryOpt";
 import { useCategoriesQuery, useCashflowTypesQuery, usePaymentTypesQuery } from "../hooks/useMasterOpt";
-import { GrowTransition } from '../component/TransitionEffect';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 
+import BulkEditDialog from "../component/BulkDialog";
 import global from "../appcore/global";
 import EditTransactionDialog from "./UpdateTransactionDialog";
 import DataTable from '../component/BaseDataTable'
@@ -32,19 +32,22 @@ function Home() {
     const now = new Date();
     const [month, setMonth] = useState(now.getMonth() + 1);
     const [year, setYear] = useState(now.getFullYear());
-    const { trx, trxError, onTrxLoad, revalidating } = useTransactionsQuery();
+    const { trx, trxError, onTrxLoad, revalidating, curSelectedTrx, setCurSelectedTrx, bulkUpdate } = useTransactionsQuery();
     const { summary, dailySummary, categorySummary, summaryLoading, summaryError } = useSummaryQuery({ month, year });
 
     const [editOpen, setEditOpen] = useState(false);
     const [selectedTx, setSelectedTx] = useState(null);
+    const [bulkOpen, setBulkOpen] = useState(false)
     const { ListCategory } = useCategoriesQuery()
     const { cashflowTypes } = useCashflowTypesQuery()
     const { ListPaymentType } = usePaymentTypesQuery()
 
+    
+
     const dt_trx = [
         {id: 'description', label: 'Transaction Title', noWrap: true, width: 180},
         {id: 'user_id', label: 'Spend By', render: (row) => row?.profiles?.display_name ?? '-', noWrap: true, width: 180},
-        {id: 'amount', label: 'Spend', render: (row) => global.formatRp(row?.amount), noWrap: true, width: 180},
+        {id: 'amount', label: 'Spend', render: (row) => global.formatRp(row?.amount), noWrap: true, width: 180, total: 'sum'},
         {id: 'categories', label: 'Category', render: (row) => row?.categories?.name, noWrap: true, width: 180 , getValue: (row) => row?.categories?.name},
         {id: 'payment_type', label: 'Payment Type', render: (row) => row?.payment_type?.name ?? '-', noWrap: true, width: 180},
         {id: 'transaction_date', label: 'Date', noWrap: true, width: 180},
@@ -53,7 +56,7 @@ function Home() {
             label:'action',
             render: (row) => {
                 return (
-                    <Button startIcon={<MoreHorizIcon />}  color="primary.light" onClick={() => {setEditOpen(true); setSelectedTx(row)}} />
+                    <Button disabled={revalidating} startIcon={<MoreHorizIcon />}  color="primary.light" onClick={() => {setEditOpen(true); setSelectedTx(row)}} />
                 )
             },
             width: 180
@@ -150,9 +153,39 @@ function Home() {
 
                 <Divider sx={{marginY: 2}} />
                 <Box sx={{ display:'flex', flexDirection:'row', bgcolor:'', gap:2, flexGrow: 1, alignItems: 'center'}}>
-                    <DataTable title="Detail Transaction" dense loading={onTrxLoad} columns={dt_trx} data={trx} rowKey={(row) => row.id} defaultOrderBy="spend datetime" defaultOrder="desc" searchable searchPlaceholder="Search"/>
+                    <DataTable 
+                        showTotal 
+                        dense 
+                        searchable 
+                        selectable
+                        selected={curSelectedTrx}
+                        onSelectionChange={setCurSelectedTrx}
+                        toolbarActions={
+                            curSelectedTrx.length > 0 && (
+                                <Button variant="contained" onClick={() => setBulkOpen(true)}>
+                                    Edit {curSelectedTrx.length} selected
+                                </Button>
+                            )
+                        }
+                        title="Detail Transaction" 
+                        loading={onTrxLoad}
+                        columns={dt_trx}
+                        data={trx}
+                        rowKey={(row) => row.id} 
+                        defaultOrderBy="spend datetime"
+                        defaultOrder="desc"
+                        searchPlaceholder="Search"/>
                 </Box>
             </Box>
+            <BulkEditDialog
+                open={bulkOpen}
+                count={curSelectedTrx.length}
+                onClose={() => setBulkOpen(false)}
+                onSubmit={bulkUpdate}
+                categories={ListCategory}
+                paymentTypes={ListPaymentType}
+                cashflowTypes={cashflowTypes}
+            />
         </Container>
     )
 }
