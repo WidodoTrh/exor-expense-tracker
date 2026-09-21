@@ -12,6 +12,7 @@ import useIsMobile from './hooks/useIsMobile';
 
 
 
+export const NAVBAR_HEIGHT = 64;
 const DRAWER_WIDTH = 340;
 const MINI_WIDTH = 72;
 

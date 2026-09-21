@@ -177,9 +177,8 @@ export default function InvitePage() {
     }
 
     const getConfirmDialog = async (v,c) => {
-        const currVal = v.name
-        const message = `${currVal} - Are you sure ?`
-        const y = await confirm('Delete', message)
+        const message = 'Are you sure delete this record?'
+        const y = await confirm(`Delet - ${v.name || v.profiles?.display_name}`, message)
         if (y) {
             drop_typeof(v,c)
         }

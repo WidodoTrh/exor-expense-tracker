@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
-import { AppBar, Toolbar, Typography, Button, IconButton, Box, Drawer, List, ListItem, ListItemButton, ListItemText, useMediaQuery, useTheme, Avatar, Menu, Divider, MenuItem, ListItemIcon } from '@mui/material'
+import { Skeleton,  CircularProgress, AppBar, Toolbar, Typography, Button, IconButton, Box, Drawer, List, ListItem, ListItemButton, ListItemText, useMediaQuery, useTheme, Avatar, Menu, Divider, MenuItem, ListItemIcon } from '@mui/material'
 import { Link, useLocation } from 'react-router-dom'
 import { useColorMode } from '../context/ThemeContext'
 import { useMyProfileQuery } from '../hooks/useMyProfilesOpt';
+import { NAVBAR_HEIGHT } from '../AppLayout';
 
 
+import HistoryIcon from '@mui/icons-material/History';
+import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu'
-import AppsIcon from '@mui/icons-material/Apps';
 import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
 import PersonIcon from '@mui/icons-material/Person'
@@ -19,7 +21,7 @@ const navItems = [
 
 function Navbar({onToggleSidebar, sidebarOpen}) {
   const logoText = import.meta.env.VITE_APP_NAME
-  const { myProfile } = useMyProfileQuery()
+  const { myProfile, profileLoading } = useMyProfileQuery()
   const logoutBtn = authProfiles((s) => s.act_LOGOUT)
   const theme = useTheme()
   const isMobile = useIsMobile()
@@ -43,7 +45,7 @@ function Navbar({onToggleSidebar, sidebarOpen}) {
   return (
     <>
       <AppBar position="fixed" color="default" elevation={1}>
-        <Toolbar>
+        <Toolbar sx={{ minHeight: { xs: NAVBAR_HEIGHT, sm: NAVBAR_HEIGHT } }}>
           <Typography variant="h6" component={Link} to="/" sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 700 }}>
             {logoText}
           </Typography>
@@ -65,8 +67,10 @@ function Navbar({onToggleSidebar, sidebarOpen}) {
                   {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
                 </IconButton>
               </Box>
-              <Typography variant="body2" sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 700, marginX: 3 }}>
-                  {myProfile?.display_name}
+              <Typography variant="body2" sx={{ color: 'inherit', fontWeight: 700, marginX: 3 }}>
+                {profileLoading
+                  ? <Skeleton width={90} />
+                  : myProfile?.display_name}
               </Typography>
               <IconButton onClick={handleProfileClick}>
                 <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: 14 }} src={myProfile?.user?.picture}>
@@ -84,7 +88,7 @@ function Navbar({onToggleSidebar, sidebarOpen}) {
             slotProps={{
                 paper: {
                     sx: {
-                        minHeight: 300,
+                        minHeight: 200,
                         overflowY: 'auto',
                         width: 400,
                         display: 'flex',
@@ -100,8 +104,18 @@ function Navbar({onToggleSidebar, sidebarOpen}) {
                 }
             }}
           >
-            <MenuItem sx={{marginTop: 'auto'}}>
-              <Button fullWidth color="inherit" onClick={handle_logOut}>Logout</Button>
+            <MenuItem component={Link} to="/profile" onClick={handleProfileClose} >
+              <ListItemIcon><PersonIcon /></ListItemIcon>
+              <ListItemText>Profile</ListItemText>
+            </MenuItem>
+            <Divider sx={{marginY : 2}} />
+            <MenuItem component={Link} to="/changelog" onClick={handleProfileClose}>
+              <ListItemIcon><HistoryIcon  /> </ListItemIcon>
+              <ListItemText>Changelog</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={handle_logOut}>
+              <ListItemIcon><LogoutIcon  /> </ListItemIcon>
+              <ListItemText>Logout</ListItemText>
             </MenuItem>
           </Menu>
         </Toolbar>

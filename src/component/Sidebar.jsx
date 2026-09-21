@@ -3,6 +3,7 @@ import { useTheme, Drawer, Box, Button, Tooltip,Typography, Divider, useMediaQue
 import { Link, useLocation } from 'react-router-dom'
 import { useColorMode } from '../context/ThemeContext'
 import { useMyProfileQuery } from '../hooks/useMyProfilesOpt';
+import { NAVBAR_HEIGHT } from '../AppLayout';
 
 import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
@@ -63,7 +64,7 @@ function Sidebar({ open, width, onClose }) {
                 flexShrink: 0,
                 '& .MuiDrawer-paper': {
                     position: isMobile ? 'fixed' : 'fixed',
-                    top: isMobile ? 0 : (theme) => theme.mixins.toolbar.minHeight,
+                    top: isMobile ? 0 :NAVBAR_HEIGHT,
                     width: currentWidth,
                     height: isMobile ? '100%' : `calc(100% - 60px)`,
                     overflowX: 'hidden',
@@ -75,7 +76,7 @@ function Sidebar({ open, width, onClose }) {
                     boxSizing: 'border-box',
                     borderRight: (theme) => `1px solid ${theme.palette.divider}`,
                     borderLeft: 'none',
-                    zIndex: (theme) => theme.zIndex.drawer,
+                    zIndex: (theme) => isMobile ? theme.zIndex.drawer : theme.zIndex.appBar - 1,
                 },
             }}
         >   

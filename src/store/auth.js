@@ -42,7 +42,7 @@ const authProfiles = create((set, get) => ({
 
     act_LOGOUT: async () => {
         try {
-            await supabase.auth.signOut();
+            await supabase.auth.signOut({scope: 'local'});
         } finally {
             set({ state_AUTH_PROFILE: null });
         }

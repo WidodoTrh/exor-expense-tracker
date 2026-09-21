@@ -73,8 +73,14 @@ export function CustomThemeProvider({ children }) {
           },
           ...(mode === 'light'
             ? {
-                background: { default: '#ffffff', paper: '#ffffff' },
-                text: { primary: '#08060d', secondary: '#6b6375' }
+                background: { 
+                  default: '#F1F3F7', 
+                  paper: '#ffffff'
+                },
+                text: { 
+                  primary: '#08060d', 
+                  secondary: '#6b6375'
+                }
               }
             : {
                 background: { default: '#16171d', paper: '#1f2028' },

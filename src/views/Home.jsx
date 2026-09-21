@@ -169,10 +169,8 @@ function DailyTransactionTable() {
 
     const dt_daily = [
         { id: 'description', label: 'Transaction Title', noWrap: true, width: 180 },
-        { id: 'spend_by', label: 'Spend By', render: (row) => row?.profiles?.display_name ?? '-', noWrap: true, width: 150},
         { id: 'amount', label: 'Spend', render: (row) => global.formatRp(row?.amount), noWrap: true, width: 150 },
-        { id: 'category', label: 'Category', render: (row) => row?.categories?.name ?? '-' , noWrap: true, width: 150},
-        { id: 'payment_type', label: 'Payment Type', render: (row) => row?.payment_type?.name ?? '-', noWrap: true, width: 150 },
+        { id: 'spend_by', label: 'Spend By', render: (row) => row?.profiles?.display_name ?? '-', noWrap: true, width: 150}
     ]
 
     return (

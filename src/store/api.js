@@ -20,6 +20,16 @@ $axInstance.interceptors.request.use(async (config) => {
     return config;
 });
 
+$axInstance.interceptors.response.use(
+    (res) => res,
+    async (err) => {
+        if (err.response?.status === 401) {
+            await supabase.auth.signOut({ scope: 'local' })
+        }
+        return Promise.reject(err)
+    }
+)
+
 // let refreshPromise = null;
 // $axInstance.interceptors.response.use(
 //     (response) => response,

@@ -2,6 +2,7 @@
 import { Navigate } from "react-router-dom";
 import Home from "../views/Home";
 import LoginPage from "../views/LoginPage";
+import RegisterPage from "../views/RegisterPage";
 import AppLayout from '../AppLayout';
 import TransactionPage from "../views/TransactionPage";
 import InvitePage from "../views/SettingsPage";
@@ -9,7 +10,8 @@ import PrivacyPolicyPage from "../views/PrivacyPolicyPage";
 import TermsOfServicePage from "../views/TermsOfServicePage";
 import ForgotPasswordPage from "../views/ForgotPasswordPage";
 import ResetPasswordPage from "../views/ResetPasswordPage";
-import Profile from "../component/ProfilesPage";
+import Profile from "../views/ProfilesPage";
+import ChangeLog from "../views/ChangelogPage";
 
 import { ProtectedRoute } from './ProtectedRoute';
 import { PublicOnlyRoute } from "./PublicOnlyRoute";
@@ -20,6 +22,14 @@ export const routes = [
     element: (
       <PublicOnlyRoute>
         <LoginPage />
+      </PublicOnlyRoute>
+    )
+  },
+ {
+    path: '/register',
+    element: (
+      <PublicOnlyRoute>
+        <RegisterPage />
       </PublicOnlyRoute>
     )
   },
@@ -53,6 +63,7 @@ export const routes = [
       { path: "/trx", title: "Transaction", element: <TransactionPage /> },
       { path: "/settings", title: "Settings", element: <InvitePage /> },
       { path: "/profile", title: "Profile", element: <Profile /> },
+      { path: "/changelog", title: "Change Log", element: <ChangeLog /> },
     ],
   },
 ];

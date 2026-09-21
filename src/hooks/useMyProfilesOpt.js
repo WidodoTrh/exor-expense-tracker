@@ -8,10 +8,10 @@ export function useMyProfileQuery() {
         $axInstance.get('/auth/profiles').then((res) => res.data.profiles);
 
     const { data, error, isLoading } = useSWR(userId ? ['/auth/profiles', userId] : null, fetcher);
-
+    
     return { 
         myProfile: data, 
         profileLoading: isLoading, 
-        profileError: error 
+        profileError: error,
     };
 }
