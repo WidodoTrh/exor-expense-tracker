@@ -1,5 +1,20 @@
 export const CHANGELOG = [
     {
+        version: '1.0.1',
+        date: '2026-09-22',
+        title: 'Release App to public',
+        changes: [
+            {
+                type: 'added',
+                text: 'App ready to rolling out',
+            },
+            {
+                type: 'improved',
+                text: 'New user can try to sign up to start their Expense Tracker',
+            }
+        ],
+    },
+    {
         version: '0.7.1',
         date: '2026-09-21',
         title: 'Bulk Update Management',

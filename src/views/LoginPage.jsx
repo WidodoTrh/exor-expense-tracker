@@ -2,8 +2,10 @@ import { supabase } from '../lib/supabaseClient';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, Paper, Stack, CircularProgress, Divider, TextField, InputAdornment, IconButton } from '@mui/material';
-import GoogleIcon from '@mui/icons-material/Google';
 import { useSnackbar } from 'notistack';
+
+import DemoLoginButton from '../component/DemoLoginButton';
+import GoogleIcon from '@mui/icons-material/Google';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
@@ -46,13 +48,14 @@ export default function LoginPage() {
                 <Stack spacing={2}>
                     <Typography variant="h3" fontWeight={600} color="text.primary">Exordium</Typography>
                     <Typography variant="h6" color="text.primary">Expense Tracker App</Typography>
-                    <Typography variant="body2" color="text.secondary">Sign in with your Google account to start tracking your cashflow</Typography>
-                    <Button variant="contained" startIcon={isLoggingIn ? <CircularProgress size={16} color="inherit" /> : <GoogleIcon />} onClick={handleGoogleLogin} sx={{ marginY: 2, textTransform: 'none' }} disabled={isLoggingIn}>{isLoggingIn ? 'Signing in...' : 'Sign in with Google'}</Button>
-                    <Divider sx={{ my: 1 }}><Typography variant="caption" color="text.secondary">or</Typography></Divider>
+                    {/* <Typography variant="body2" color="text.secondary">Sign in with your Google account to start tracking your cashflow</Typography> */}
+                    {/* <Button variant="contained" startIcon={isLoggingIn ? <CircularProgress size={16} color="inherit" /> : <GoogleIcon />} onClick={handleGoogleLogin} sx={{ marginY: 2, textTransform: 'none' }} disabled={isLoggingIn}>{isLoggingIn ? 'Signing in...' : 'Sign in with Google'}</Button> */}
+                    {/* <Divider sx={{ my: 1 }}><Typography variant="caption" color="text.secondary">or</Typography></Divider> */}
                     <Box component="form" onSubmit={handleEmailSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                         <TextField label="Email" type="email" size="small" value={email} onChange={(event) => setEmail(event.target.value)} required fullWidth />
                         <TextField label="Password" type={showPassword ? 'text' : 'password'} size="small" value={password} onChange={(event) => setPassword(event.target.value)} required fullWidth slotProps={{ htmlInput: { minLength: 6 }, input: { endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPassword((previous) => !previous)} edge="end">{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment> } }} />
-                        <Button type="submit" variant="outlined" disabled={isSubmittingEmail} sx={{ textTransform: 'none' }} fullWidth>{isSubmittingEmail ? <CircularProgress size={16} color="inherit" /> : 'Sign in with Email'}</Button>
+                        <Button type="submit" variant="outlined" disabled={isSubmittingEmail} sx={{ textTransform: 'none' }} fullWidth>{isSubmittingEmail ? <CircularProgress size={27} color="inherit" /> : 'Sign in with Email'}</Button>
+                        {/* <DemoLoginButton /> */}
                         <Typography component={Link} to="/register" variant="caption" sx={{ color: 'primary.main', textDecoration: 'underline' }}>Don't have an account? Sign up</Typography>
                         <Typography component={Link} to="/forgot-password" variant="caption" sx={{ color: 'primary.main', textDecoration: 'underline', display: 'block', textAlign: 'center' }}>Forgot password?</Typography>
                     </Box>

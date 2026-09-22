@@ -70,7 +70,7 @@ function Navbar({onToggleSidebar, sidebarOpen}) {
               <Typography variant="body2" sx={{ color: 'inherit', fontWeight: 700, marginX: 3 }}>
                 {profileLoading
                   ? <Skeleton width={90} />
-                  : myProfile?.display_name}
+                  : myProfile?.display_name || 'Unnamed User'}
               </Typography>
               <IconButton onClick={handleProfileClick}>
                 <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: 14 }} src={myProfile?.user?.picture}>
