@@ -38,15 +38,12 @@ export default async function handler(req, res) {
     }
 
     // 2. Cek udah jadi member belum (biar gak insert duplikat)
-    const { data: existing } = await supabase
-        .from('household_members')
-        .select('user_id')
-        .eq('household_id', household_id)
-        .eq('user_id', foundUserId)
-        .maybeSingle();
-
-    if (existing) {
-        return res.status(400).json({ error: 'This user is already a member of the household.' });
+    const { data: existingHouseholdId } = await supabase.rpc('get_user_household_id', { p_user_id: foundUserId });
+    if (existingHouseholdId) {
+        const message = existingHouseholdId === household_id
+            ? 'This user is already a member of this household.'
+            : 'This user already belongs to another household and cannot be invited.';
+        return res.status(400).json({ error: message });
     }
 
     // 3. Masukin jadi member

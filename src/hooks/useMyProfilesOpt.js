@@ -7,11 +7,25 @@ export function useMyProfileQuery() {
     const fetcher = () =>
         $axInstance.get('/auth/profiles').then((res) => res.data.profiles);
 
-    const { data, error, isLoading } = useSWR(userId ? ['/auth/profiles', userId] : null, fetcher);
+    const { data, error, isLoading, mutate } = useSWR(userId ? ['/auth/profiles', userId] : null, fetcher);
     
-    return { 
+    const createOwnHousehold = async (householdName) => {
+        await $axInstance.post('household/getlist', {householdName})
+        mutate()
+    }
+
+    const dropOwnHousehold = async (householdId) => {
+        await $axInstance.delete('household/getlist', {
+            data: {householdId}
+        });
+        mutate()
+    }
+    
+    return {
         myProfile: data, 
         profileLoading: isLoading, 
         profileError: error,
+        createOwnHousehold,
+        dropOwnHousehold,
     };
 }
