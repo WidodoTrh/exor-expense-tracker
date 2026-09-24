@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useMediaQuery, useTheme, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableFooter, TablePagination, TableSortLabel, Paper, Checkbox, Skeleton, Box, Typography, Toolbar, Alert, TextField, InputAdornment, IconButton } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
@@ -125,7 +125,8 @@ export default function DataTable({
     const [localSearchInput, setLocalSearchInput] = useState('')
     const [localSearchTerm, setLocalSearchTerm] = useState('')
 
-    const page = serverSide ? controlledPage ?? 0 : localPage
+    // const page = serverSide ? controlledPage ?? 0 : localPage
+    const rawPage = serverSide ? controlledPage ?? 0 : localPage
     const rowsPerPage = serverSide ? controlledRowsPerPage ?? rowsPerPageOptions[0] : localRowsPerPage
     const selected = controlledSelected ?? localSelected
     const searchInputValue = serverSide ? controlledSearchValue ?? '' : localSearchInput
@@ -180,6 +181,12 @@ export default function DataTable({
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filteredData, order, orderBy, serverSide])
+
+    const maxPage = Math.max(0, Math.ceil(sortedData.length / rowsPerPage) - 1)
+    const page = serverSide ? rawPage : Math.min(rawPage, maxPage)
+    useEffect(() => {
+        if (!serverSide && localPage !== page) setLocalPage(page)
+    }, [serverSide, localPage, page])
 
     // ---------- pagination logic (skip slice kalau serverSide, karena data yg dikirim udah 1 halaman) ----------
     const paginatedData = useMemo(() => {

@@ -89,8 +89,20 @@ export default function InvitePage() {
         {
             id: 'name',
             label: 'Member Name',
-            render: (row) => row.profiles.display_name,
+            render: (row) => row.profiles?.display_name,
             noWrap: false
+        },
+        {
+            id: 'email',
+            label: 'Email',
+            noWrap: true,
+            render: (row) => {
+                return (
+                    <Tooltip title={row.profiles?.email} placement="top">
+                        {row.profiles?.email}
+                    </Tooltip>  
+                )
+            }
         },
         {
             id: 'role',
@@ -161,7 +173,6 @@ export default function InvitePage() {
                     await dropCategory(v.id)
                     break;
                 case 'member_remove':
-                    console.log('oasdsa',v)
                     await dropMember({ user_id: v.user_id, household_id: myProfile?.household_id })
                     break;
                 default:
@@ -198,6 +209,7 @@ export default function InvitePage() {
             setSubmitting(false);
         }
     };
+
 
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>

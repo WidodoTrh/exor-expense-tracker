@@ -19,7 +19,6 @@ import TabletMacOutlinedIcon from '@mui/icons-material/TabletMacOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import LogoutIcon from '@mui/icons-material/Logout';
 
-// TODO: adjust this path to where your hook lives
 import { useMySessionsQuery } from '../hooks/useMySessionOpt';
 
 /* ---------- helpers ---------- */

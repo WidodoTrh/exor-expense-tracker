@@ -1,5 +1,31 @@
 export const CHANGELOG = [
     {
+        version: '1.0.2',
+        date: '2026-09-24',
+        title: 'Fix datatable bug',
+        changes: [
+            {
+                type: 'fixed',
+                text: 'fix datatable went wrong when receive data from multipage to single page',
+            },
+        ],
+    },
+    {
+        version: '1.0.1',
+        date: '2026-09-22',
+        title: 'Release App to public',
+        changes: [
+            {
+                type: 'added',
+                text: 'App ready to rolling out',
+            },
+            {
+                type: 'improved',
+                text: 'New user can try to sign up to start their Expense Tracker',
+            }
+        ],
+    },
+    {
         version: '1.0.1',
         date: '2026-09-22',
         title: 'Release App to public',

@@ -5,6 +5,7 @@ import { useSummaryQuery } from "../hooks/useSummaryOpt";
 import { useCategoriesQuery, useCashflowTypesQuery, usePaymentTypesQuery } from "../hooks/useMasterOpt";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 
+import useIsMobile from '../hooks/useIsMobile'
 import BulkEditDialog from "../component/BulkDialog";
 import global from "../appcore/global";
 import EditTransactionDialog from "./UpdateTransactionDialog";
@@ -29,6 +30,7 @@ const MONTHS = [
 
 function Home() {
     const theme = useTheme()
+    const isMobile = useIsMobile()
     const now = new Date();
     const [month, setMonth] = useState(now.getMonth() + 1);
     const [year, setYear] = useState(now.getFullYear());
@@ -45,7 +47,17 @@ function Home() {
     
 
     const dt_trx = [
-        {id: 'description', label: 'Transaction Title', noWrap: true, width: 180},
+        {
+            id: 'description',
+            label: 'Transaction Title',
+            noWrap: true, 
+            width: 180,
+            render: (row) => {
+                return (
+                    isMobile ? <Button onClick={() => {setEditOpen(true); setSelectedTx(row)}}> {row.description} </Button> : row.description
+                )
+            }
+        },
         {id: 'user_id', label: 'Spend By', render: (row) => row?.profiles?.display_name ?? '-', noWrap: true, width: 180},
         {id: 'amount', label: 'Spend', render: (row) => global.formatRp(row?.amount), noWrap: true, width: 180, total: 'sum'},
         {id: 'categories', label: 'Category', render: (row) => row?.categories?.name, noWrap: true, width: 180 , getValue: (row) => row?.categories?.name},
@@ -54,6 +66,7 @@ function Home() {
         {
             id: 'action',
             label:'action',
+            hideOnMobile: true,
             render: (row) => {
                 return (
                     <Button disabled={revalidating} startIcon={<MoreHorizIcon />}  color="primary.light" onClick={() => {setEditOpen(true); setSelectedTx(row)}} />
@@ -61,7 +74,7 @@ function Home() {
             },
             width: 180
         }
-    ]
+    ].filter((col) => !(isMobile && col.hideOnMobile))
 
     return (
         <Container maxWidth={false} sx={{display: 'flex', flexDirection: 'column', flexGrow: 1}}>
@@ -154,7 +167,7 @@ function Home() {
                 <Divider sx={{marginY: 2}} />
                 <Box sx={{ display:'flex', flexDirection:'row', bgcolor:'', gap:2, flexGrow: 1, alignItems: 'center'}}>
                     <DataTable 
-                        showTotal 
+                        showTotal
                         dense 
                         searchable 
                         selectable
@@ -202,7 +215,7 @@ function DailyTransactionTable() {
 
     const dt_daily = [
         { id: 'description', label: 'Transaction Title', noWrap: true, width: 180 },
-        { id: 'amount', label: 'Spend', render: (row) => global.formatRp(row?.amount), noWrap: true, width: 150 },
+        { id: 'amount', label: 'Spend', render: (row) => global.formatRp(row?.amount), noWrap: true, width: 150, total: 'sum' },
         { id: 'spend_by', label: 'Spend By', render: (row) => row?.profiles?.display_name ?? '-', noWrap: true, width: 150}
     ]
 
@@ -230,6 +243,8 @@ function DailyTransactionTable() {
             </Box>
 
             <DataTable
+                key={global.formatDateLocal(selectedDate)}
+                showTotal
                 dense
                 title="Daily Transaction Detail"
                 columns={dt_daily}
